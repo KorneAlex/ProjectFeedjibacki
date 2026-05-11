@@ -1,5 +1,7 @@
+import fs from "fs/promises";
 import { db } from "../models/db.js";
 import { addPointFormSchema } from "../models/joi-schema.js";
+import { cloudinary } from "../lib/cloudinary.js";
 
 export const actionsController = {
   addApiKey: {
@@ -74,6 +76,53 @@ export const actionsController = {
         }
       }
       return h.redirect("/users?info=deleted");
+    },
+  },
+
+  // Points
+
+  // https://console.cloudinary.com/app/c-66b926e4a8b5144cfd27d31bc53a3b/image/getting-started
+  uploadPointImage: {
+    payload: {
+      maxBytes: 5 * 1024 * 1024,
+      parse: true,
+      output: "file",
+      multipart: true,
+    },
+    handler: async (request, h) => {
+      const pointId = request.query.id;
+      const redirectBase = pointId ? `/point?id=${pointId}` : "/my-points";
+
+      const file = request.payload?.imagefile; // AI help with getting file from payload
+      if (!file?.path) {
+        return h.redirect(`${redirectBase}`);
+      }
+
+      try {
+        // https://cloudinary.com/documentation/upload_images
+        const uploaded = await cloudinary.uploader.upload(file.path, {
+          folder: "notemap/points",
+          public_id: pointId,
+          overwrite: true,
+          resource_type: "image",
+          display_name: `point-${pointId}`,
+        });
+        await fs.unlink(file.path).catch(() => {});
+
+        const url = uploaded?.secure_url;
+        if (!url) {
+          return h.redirect(`${redirectBase}`);
+        }
+
+        await db.pointsStore.updatePointImageUrl(pointId, url);
+        return h.redirect(`${redirectBase}`);
+      } catch (err) {
+        console.error(err);
+        if (file?.path) {
+          await fs.unlink(file.path).catch(() => {});
+        }
+        return h.redirect(`${redirectBase}`);
+      }
     },
   },
 };

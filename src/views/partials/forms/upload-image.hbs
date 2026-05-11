@@ -1,0 +1,46 @@
+// copied from the lab and modified for my project
+
+<div class="card">
+  {{#if viewData.uploadFeedback}}
+  <div class="card-content"><p class="{{viewData.uploadFeedback.class}}">{{viewData.uploadFeedback.text}}</p></div>
+  {{/if}}
+  <div class="card-image">
+    <figure class="image is-256x256">
+      {{#if viewData.pointData.data.imgUrl}}
+      <img src="{{viewData.pointData.data.imgUrl}}" alt="Point image">
+      {{else}}
+      <div class="has-background-light is-flex is-align-items-center is-justify-content-center" style="min-height: 200px;">
+        <span class="has-text-grey">No image yet</span>
+      </div>
+      {{/if}}
+    </figure>
+  </div>
+  <div class="card-content">
+    <form action="/point/uploadImage?id={{viewData.pointData._id}}" method="POST" enctype="multipart/form-data">
+      <div id="file-select" class="file has-name is-fullwidth">
+        <label class="file-label"> <input class="file-input" name="imagefile" type="file" accept="image/png, image/jpeg">
+          <span class="file-cta">
+            <span class="file-icon">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label">
+              Choose a file…
+            </span>
+           </span>
+          <span class="file-name"></span>
+        </label>
+        <button type="submit" class="button is-info">Upload</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  const fileInput = document.querySelector(".file-input");
+  fileInput.onchange = () => {
+    if (fileInput.files.length > 0) {
+      const fileName = document.querySelector(".file-name");
+      fileName.textContent = fileInput.files[0].name;
+    }
+  };
+
+</script>

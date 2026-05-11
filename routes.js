@@ -32,6 +32,9 @@ export const routes = [
     { method: 'POST', path: '/addApiToAccount', config: actionsController.addApiKey },
     { method: 'POST', path: '/dashboard/add-point/submit', config: actionsController.addPoint },
 
+    // points
+    { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },
+
     // test
     { method: 'GET', path: '/test', handler: testController.test, options: { auth: { mode: "try"} } },
     { method: 'POST', path: '/test/submit', handler: testController.testSubmit.handler, options: testController.testSubmit.options },

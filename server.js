@@ -22,6 +22,9 @@ import { db } from "./src/models/db.js";
 
 dotenv.config();
 
+import { initCloudinary } from "./src/lib/cloudinary.js";
+// TODO: orginize imports and code in this file. I want to move all additional modules to the lib folder the same as Cloudinary
+
 // https://stackoverflow.com/questions/10736907/handlebars-js-else-if
 // https://handlebarsjs.com/playground.html
 Handlebars.registerHelper("eq", function (operand1, operand2) {
@@ -38,6 +41,8 @@ const __dirname = path.resolve();
 
 // Initialize database
 await db.init();
+
+initCloudinary();
 
 //server
 const init = async () => {

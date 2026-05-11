@@ -75,6 +75,7 @@ export const pointSchema = Joi.object({
   data: {
     name: Joi.string().min(2).max(20).required(),
     description: Joi.string().max(200),
+    imgUrl: Joi.string().uri().optional(),
     categories: Joi.array().items(Joi.string().alphanum().min(1).max(20)), // AI help
   },
 });
@@ -85,6 +86,7 @@ export const addPointFormSchema = Joi.object({
   lon: Joi.number().min(-180).max(180).required(),
   name: Joi.string().min(2).max(20).required(),
   description: Joi.string().max(200),
+  imgUrl: Joi.string().uri().optional(),
   categories: Joi.array().allow("").optional(), // not ready yet
 });
 
@@ -96,6 +98,7 @@ export const pointUpdateSchema = Joi.object({
   data: {
     name: Joi.string().min(2).max(20).required(),
     description: Joi.string().max(200),
+    imgUrl: Joi.string().uri().optional(),
     categories: Joi.array().items(Joi.string().alphanum().min(1).max(20)), // AI help
   },
 });

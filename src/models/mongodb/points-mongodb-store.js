@@ -112,12 +112,24 @@ export const pointsStore = {
         lon: value.pos.lon,
       },
       data: {
-        name: value.data.name,
-        description: value.data.description,
-        categories: value.data.categories,
+      name: value.data.name,
+      description: value.data.description,
+      categories: value.data.categories,
+      imgUrl: value.data.imgUrl,
       },
     };
     await Point.updateOne({ _id: pointId }, { $set: newPointData });
+    return await this.getPointDataById(pointId);
+  },
+
+  async updatePointImageUrl(pointId, imgUrl) {
+    if (!mongoose.Types.ObjectId.isValid(pointId)) {
+      return null;
+    }
+    await Point.updateOne(
+      { _id: pointId },
+      { $set: { "data.imgUrl": imgUrl } },
+    );
     return await this.getPointDataById(pointId);
   },
   // Delete   ==================================================================================================================================
