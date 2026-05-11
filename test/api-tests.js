@@ -34,7 +34,6 @@ M.suite("API Service test", () => {
       await noteOnMapService.updateUserById(newUser._id.toString(), payload);
       const checkUser = await db.usersStore.getUserById(newUser._id.toString());
       assert.equal(checkUser.password, payload.password);
-      assert.equal(checkUser.passwordRepeat, payload.passwordRepeat);
     });
 
     M.it("4. Delete user", async () => {

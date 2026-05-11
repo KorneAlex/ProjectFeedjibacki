@@ -7,6 +7,13 @@ import Vision from "@hapi/vision";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { createRequire } from "module";
+import HapiSwagger from "hapi-swagger";
+const require = createRequire(import.meta.url); // AI
+const Pack = require("./package.json");
+const Inert = require('@hapi/inert');
+
+
 
 // my modules
 import { routes } from "./routes.js";
@@ -44,8 +51,25 @@ const init = async () => {
     },
   });
 
+  const swaggerOptions = {
+        info: {
+                title: 'NoteOnMap API Documentation',
+                version: Pack.version,
+            },
+
+  grouping: "tags",
+
+};
+
   // modules and plugins
-  await server.register([{ plugin: Vision }, { plugin: Cookie }]);
+  await server.register([
+    { plugin: Vision }, 
+    { plugin: Inert }, 
+    { plugin: Cookie }, 
+    {
+            plugin: HapiSwagger,
+            options: swaggerOptions
+    }]);
 
   // validator
   // server.validate(Joi);

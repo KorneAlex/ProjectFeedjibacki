@@ -82,9 +82,13 @@ export const usersStore = {
       return null;
     }
     delete updateData._id;
+    delete updateData.passwordRepeat;
+    delete updateData.passwordRepeat;
     const res = await User.updateOne({ _id: uid }, { $set: updateData });
-    console.log("updated:", res);
-    return res;
+    if (res.matchedCount === 0) {
+      return null;
+    }
+    return User.findById(uid).lean();
   },
 
   // Delete   ==================================================================================================================================

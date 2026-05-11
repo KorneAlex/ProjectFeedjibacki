@@ -7,9 +7,10 @@ export const testData = [{
       passwordRepeat: "123123",
     },
 
-    testUserUpdate:  {
-      "username": "DevTest",
-      "password": "321321"
+    testUserUpdate: {
+      username: "DevTest",
+      password: "321321",
+      passwordRepeat: "321321",
     },
     
     testUserWrong1: {
