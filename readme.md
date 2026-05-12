@@ -113,6 +113,7 @@ npm run lint
 project-root
 │
 ├── controllers     # Routes handlers
+├── lib             # Modules for the server.js
 ├── models          # DB and module handlers 
 ├── views           # Handlebars templates, particles and pages
 ├── test            # Mocha tests
@@ -124,7 +125,7 @@ project-root
 
 ## Purpose of the Project
 
-This project was built for SETU WebDev2 Assignment1 to explore:
+This project was built for SETU Full stack Web Development Assignment2 to explore:
 
 - building APIs with Hapi
 - authentication with cookies
