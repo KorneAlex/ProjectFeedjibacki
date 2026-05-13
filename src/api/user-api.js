@@ -33,7 +33,7 @@ export const userApi = {
   },
 
   getAll: {
-    auth: false,
+    auth: 'jwt',
     handler: async function(request, h) {
       try {
         return await db.usersStore.getAllUsers();

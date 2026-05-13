@@ -123,29 +123,83 @@ export const mainController = {
       }
     },
 
-    users: async (request, h) => {
-      const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
-      let allUsers = [];
-      if (isAdmin) {
+
+    // users: async (request, h) => {
+    //   const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
+    //   let allUsers = [];
+    //   if (isAdmin) {
+    //     allUsers = await db.usersStore.getAllUsers();
+    //   } else { 
+    //     return h.redirect("/");
+    //   }
+    //   const viewData = {
+    //     isAuthenticated: request.auth.isAuthenticated,
+    //     userIsAdmin: isAdmin,
+    //     username: request.auth.credentials.username,
+    //     users: allUsers
+    //   };
+    //   if (request.query.info === "deleted") {
+    //     viewData.message = "The user has been deleted.";
+    //   }
+    //   if (request.query.error === "admin") {
+    //     viewData.message = "The user is Admin. Remove admin status first.";
+    //   }
+    //   await db.usersStore.isLastAdmin();
+    //   return h.view("./pages/users", { title: "Users", viewData: viewData });
+    // },
+
+    users: {
+      auth: "jwt",
+      handler: async (request, h) => {
+        const isAdmin = await db.usersStore.userIsAdmin(
+          request.auth.credentials._id,
+        );
+        let allUsers = [];
+        if (!isAdmin) {
+          return h.redirect("/");
+        }
         allUsers = await db.usersStore.getAllUsers();
-      } else { 
-        return h.redirect("/");
-      }
-      const viewData = {
-        isAuthenticated: request.auth.isAuthenticated,
-        userIsAdmin: isAdmin,
-        username: request.auth.credentials.username,
-        users: allUsers
-      };
-      if (request.query.info === "deleted") {
-        viewData.message = "The user has been deleted.";
-      }
-      if (request.query.error === "admin") {
-        viewData.message = "The user is Admin. Remove admin status first.";
-      }
-      await db.usersStore.isLastAdmin();
-      return h.view("./pages/users", { title: "Users", viewData: viewData });
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          userIsAdmin: isAdmin,
+          username: request.auth.credentials.username,
+          users: allUsers,
+        };
+        if (request.query.info === "deleted") {
+          viewData.message = "The user has been deleted.";
+        }
+        if (request.query.error === "admin") {
+          viewData.message =
+            "The user is Admin. Remove admin status first.";
+        }
+        await db.usersStore.isLastAdmin();
+        return h.view("./pages/users", { title: "Users", viewData: viewData });
+      },
     },
+
+    // users: async (request, h) => {
+    //   const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
+    //   let allUsers = [];
+    //   if (isAdmin) {
+    //     allUsers = await db.usersStore.getAllUsers();
+    //   } else { 
+    //     return h.redirect("/");
+    //   }
+    //   const viewData = {
+    //     isAuthenticated: request.auth.isAuthenticated,
+    //     userIsAdmin: isAdmin,
+    //     username: request.auth.credentials.username,
+    //     users: allUsers
+    //   };
+    //   if (request.query.info === "deleted") {
+    //     viewData.message = "The user has been deleted.";
+    //   }
+    //   if (request.query.error === "admin") {
+    //     viewData.message = "The user is Admin. Remove admin status first.";
+    //   }
+    //   await db.usersStore.isLastAdmin();
+    //   return h.view("./pages/users", { title: "Users", viewData: viewData });
+    // },
 
     user: async (request, h) => {
       const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);

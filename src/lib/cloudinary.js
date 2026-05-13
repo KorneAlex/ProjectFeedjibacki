@@ -6,9 +6,6 @@
 
 
 import { v2 as cloudinary } from "cloudinary";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const Pack = require("../../package.json");
 
 export function initCloudinary() {
   cloudinary.config({
@@ -17,12 +14,4 @@ export function initCloudinary() {
     api_secret: process.env.api_secret,
   });
 }
-
 export { cloudinary };
-export const swaggerOptions = {
-  info: {
-    title: 'NoteOnMap API Documentation',
-    version: Pack.version,
-    },
-  grouping: "tags",
-};

@@ -7,7 +7,19 @@ import Cookie from "@hapi/cookie";
 import HapiSwagger from "hapi-swagger";
 import Inert from "@hapi/inert";
 import Vision from "@hapi/vision";
-import { swaggerOptions } from "./cloudinary.js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const Pack = require("../../package.json");
+
+
+export const swaggerOptions = {
+  info: {
+    title: 'NoteOnMap API Documentation',
+    version: Pack.version,
+    },
+  grouping: "tags",
+};
+
 
 export async function registerHapiPlugins(server) {
   await server.register([
@@ -18,5 +30,6 @@ export async function registerHapiPlugins(server) {
       plugin: HapiSwagger,
       options: swaggerOptions,
     },
+    { plugin: require('hapi-auth-jwt2') },
   ]);
 }
