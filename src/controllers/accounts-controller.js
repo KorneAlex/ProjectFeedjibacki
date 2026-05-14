@@ -1,10 +1,14 @@
 // db_flow_3: uses the initialized stores in controller functions
 import { db } from "../models/db.js";
 import { signupSchema } from "../models/joi-schema.js";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const jwt = require("jsonwebtoken");
-import { jwtAccessCookieAttrs, clearJwtAccessCookie, jwtRefreshCookieAttrs , clearJwtRefreshCookie} from "../lib/hapi-auth.js";
+import {
+  jwtAccessCookieAttrs,
+  clearJwtAccessCookie,
+  jwtRefreshCookieAttrs,
+  clearJwtRefreshCookie,
+  signAccessTokenForUser,
+  signRefreshTokenForUser,
+} from "../lib/hapi-auth.js";
 
 export const accountController = {
   signup: {
@@ -88,22 +92,8 @@ export const accountController = {
       }
       request.cookieAuth.set({ id: user._id.toString() });
       try {
-        const token = jwt.sign(
-          {
-            id: user._id.toString(),
-            admin: !!user.isAdmin,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: "20s" },
-        );
-        const refreshToken = jwt.sign(
-          {
-            id: user._id.toString(),
-            admin: !!user.isAdmin,
-          },
-          process.env.JWT_REFRESH_SECRET,
-          { expiresIn: "7d" },
-        );  
+        const token = signAccessTokenForUser(user);
+        const refreshToken = signRefreshTokenForUser(user);
         return h
           .redirect("/")
           .header("Set-Cookie", [jwtAccessCookieAttrs(token), jwtRefreshCookieAttrs(refreshToken)]);

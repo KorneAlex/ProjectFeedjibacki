@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const noteOnMapService = {
-    noteOnMapUrl:process.env.serviceUrl,
+    noteOnMapUrl:process.env.SERVICE_URL,
 
   async createUser(user) {
     // console.log(`[ NOM API Service ] create user POST link: ${this.noteOnMapUrl}/api/users`, user);
