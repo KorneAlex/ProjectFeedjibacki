@@ -8,11 +8,12 @@ import {
   clearJwtRefreshCookie,
   signAccessTokenForUser,
   signRefreshTokenForUser,
+  clearSessionCookie,
 } from "../lib/hapi-auth.js";
 
 export const accountController = {
   signup: {
-    auth: { mode: "try" },
+    auth: { strategy: "jwt", mode: "try" },
     handler: (request, h) => {
       const viewData = {
         isAuthenticated: request.auth.isAuthenticated,
@@ -44,7 +45,6 @@ export const accountController = {
     },
     handler: async (request, h) => {
       const {payload} = request;
-
       const viewData = {
         isAuthenticated: request.auth.isAuthenticated,
         infoMessage: "Signup successful! Please log in.",
@@ -59,12 +59,11 @@ export const accountController = {
   },
 
   login: {
-    auth: { mode: "try" },
+    auth: { strategy: "jwt", mode: "try" },
     handler: (request, h) => {
       const viewData = {
         isAuthenticated: request.auth.isAuthenticated,
       };
-
       if (request.auth.isAuthenticated) {
         return h.redirect("/");
       }
@@ -90,7 +89,11 @@ export const accountController = {
           },
         });
       }
+      try {
       request.cookieAuth.set({ id: user._id.toString() });
+      } catch (err) {
+        // console.error("Error setting cookie:", err);
+      }
       try {
         const token = signAccessTokenForUser(user);
         const refreshToken = signRefreshTokenForUser(user);
@@ -98,6 +101,7 @@ export const accountController = {
           .redirect("/")
           .header("Set-Cookie", [jwtAccessCookieAttrs(token), jwtRefreshCookieAttrs(refreshToken)]);
       } catch (err) {
+        console.error("Error signing tokens:", err);
         return h.redirect("/");
       }
     },
@@ -105,8 +109,7 @@ export const accountController = {
 
   logout: {
     handler: (request, h) => {
-      request.cookieAuth.clear();
-      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie()]);
+      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie(), clearSessionCookie()]);
     },
   },
 };

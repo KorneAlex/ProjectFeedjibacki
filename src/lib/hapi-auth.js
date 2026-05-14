@@ -1,8 +1,9 @@
 /**
- * Hapi authentication configuration using cookie-based sessions.
- * The `configureSessionAuth` function sets up a cookie authentication strategy named "session".
- * It validates the session by checking for a user ID in the session cookie and fetching the corresponding user from the database.
- * If the session is valid, it attaches the user credentials to the request; otherwise, it redirects to the login page.
+ * Hapi authentication configuration using JWT.
+ * This module defines functions to sign access and refresh tokens for users, manage JWT cookies, 
+ * and configure Hapi authentication strategies. 
+ * It also includes logic to refresh access tokens using refresh tokens when the access token is missing, invalid, or close to expiry.
+ * I kept the session cookie strategy code commented out for reference, but the active authentication strategy is JWT-based.
  */
 import { createRequire } from "module";
 import { db } from "../models/db.js";
@@ -14,6 +15,7 @@ const jwt = require("jsonwebtoken");
 // COOKIES!
 const jwtAccessCookieName = process.env.JWT_ACCESS_COOKIE_NAME || "access_token";
 const jwtRefreshCookieName = process.env.JWT_REFRESH_COOKIE_NAME || "refresh_token";
+const sessionCookieName = process.env.SESSION_COOKIE_NAME || "session_id";
 const accessTokenExpirySeconds = parseInt(process.env.ACCESS_TOKEN_EXPIRY_SECONDS) || 60;
 const refreshTokenExpirySeconds = parseInt(process.env.REFRESH_TOKEN_EXPIRY_SECONDS) || 604800;
 const leewaySecondsForAccessToken = parseInt(process.env.LEEWAY_SECONDS_FOR_ACCESS_TOKEN) || 120;
@@ -138,35 +140,45 @@ export function clearJwtRefreshCookie() {
   });
 }
 
+export function clearSessionCookie() {
+  return serialize(sessionCookieName, "", {
+    path: "/",
+    httpOnly: true,
+    maxAge: 0,
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
 // Configure Hapi authentication strategies
 export async function configureSessionAuth(server) {
-  const cookieName = process.env.SESSION_COOKIE_NAME;
-  const cookiePassword = process.env.SESSION_COOKIE_PASSWORD;
+  // The session cookie strategy is commented out in favor of JWT-based authentication, but the code is left here for reference.
+  // const cookieName = process.env.SESSION_COOKIE_NAME;
+  // const cookiePassword = process.env.SESSION_COOKIE_PASSWORD;
 
-  server.app.cookieName = cookieName;
+  // server.app.cookieName = cookieName;
 
-  server.auth.strategy("session", "cookie", {
-    cookie: {
-      name: cookieName,
-      password: cookiePassword,
-      isSecure: process.env.NODE_ENV === "production",
-      isHttpOnly: true,
-      path: "/", // I spend 2 days trying to figure out why my cookies didn't work. NO INFORMAITION ONLINE ABOUT PATH USAGE!
-    },
-    validate: async (request, session) => {
-      if (!session || !session.id) {
-        return { isValid: false };
-      }
+  // server.auth.strategy("session", "cookie", {
+  //   cookie: {
+  //     name: cookieName,
+  //     password: cookiePassword,
+  //     isSecure: process.env.NODE_ENV === "production",
+  //     isHttpOnly: true,
+  //     path: "/", // I spend 2 days trying to figure out why my cookies didn't work. NO INFORMAITION ONLINE ABOUT PATH USAGE!
+  //   },
+  //   validate: async (request, session) => {
+  //     if (!session || !session.id) {
+  //       return { isValid: false };
+  //     }
 
-      const account = await db.usersStore.getUserById(session.id);
-      if (!account) {
-        return { isValid: false };
-      }
+  //     const account = await db.usersStore.getUserById(session.id);
+  //     if (!account) {
+  //       return { isValid: false };
+  //     }
 
-      return { isValid: true, credentials: account };
-    },
-    redirectTo: "/login",
-  });
+  //     return { isValid: true, credentials: account };
+  //   },
+  //   redirectTo: "/login",
+  // });
 
   // https://www.npmjs.com/package/hapi-auth-jwt2 + some AI help I spent good 10 hours trying to figure out it by myself
   // it's good to have the SETU course instructions but we will not have any instructions in real life so I prefer to learn how to do things by myself, even if it takes more time
@@ -192,7 +204,8 @@ export async function configureSessionAuth(server) {
   }, 
 );
 
-  server.auth.default({ strategies: ["session", "jwt"], mode: "required" });
+  // server.auth.default({ strategies: ["session", "jwt"], mode: "required" });
+  server.auth.default({ strategies: ["jwt"], mode: "required" });
 
   server.ext("onPreAuth", async (request, h) => {
     if (request.path === "/logout") {

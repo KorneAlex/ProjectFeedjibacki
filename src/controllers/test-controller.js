@@ -2,28 +2,29 @@ import { testSchema } from "../models/joi-schema.js";
 import { db } from "../models/db.js"
 
 export const testController = {
-  test: async (request, h) => {
-    const points = await db.pointsStore.getAllPointsForUserId(request.auth.credentials._id);
-    const viewData = {
-      isAuthenticated: request.auth.isAuthenticated,
-    };
-    return h.view("./pages/test", { title: "Test", viewData });
+  test: {
+    auth: { mode: "try" },
+    handler: async (request, h) => {
+      const points = await db.pointsStore.getAllPointsForUserId(request.auth.credentials._id);
+      const viewData = {
+        isAuthenticated: request.auth.isAuthenticated,
+      };
+      return h.view("./pages/test", { title: "Test", viewData });
+    },
   },
 
   testSubmit: {
-    options: {
-      auth: false,
-      validate: {
-        payload: testSchema,
-        failAction: (request, h, err) => {
-          const viewData = {
-            isAuthenticated: request.auth.isAuthenticated,
-            infoMessage: err.details[0].message,
-            infoClass: "has-text-danger",
-          };
+    auth: false,
+    validate: {
+      payload: testSchema,
+      failAction: (request, h, err) => {
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          infoMessage: err.details[0].message,
+          infoClass: "has-text-danger",
+        };
 
-          return h.view("./pages/test", { title: "Test", viewData }).takeover();
-        },
+        return h.view("./pages/test", { title: "Test", viewData }).takeover();
       },
     },
 

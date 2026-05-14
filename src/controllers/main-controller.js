@@ -1,32 +1,40 @@
 import { db } from "../models/db.js";
 
 export const mainController = {
-  index: async (request, h) => {
-    const userId = request.auth?.credentials?._id;
-    const viewData = {
-      isAuthenticated: request.auth.isAuthenticated,
-      userIsAdmin: await db.usersStore.userIsAdmin(userId),
-    };
-    return h.view("index", {
-      title: "Home Page",
-      message: `Welcome to the Home Page!`,
-      viewData: viewData,
-    });
+  index: {
+    auth: { mode: "try" },
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id;
+      const viewData = {
+        isAuthenticated: request.auth.isAuthenticated,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+      };
+      return h.view("index", {
+        title: "Home Page",
+        message: `Welcome to the Home Page!`,
+        viewData: viewData,
+      });
+    },
   },
 
-  about: async (request, h) => {
-    const userId = request.auth?.credentials?._id;
-    const viewData = {
-      isAuthenticated: request.auth.isAuthenticated,
-      userIsAdmin: await db.usersStore.userIsAdmin(userId),
-    };
-    return h.view("./pages/about", {
-      title: "About The project",
-      viewData: viewData,
-    });
+  about: {
+    auth: { mode: "try" },
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id;
+      const viewData = {
+        isAuthenticated: request.auth.isAuthenticated,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+      };
+      return h.view("./pages/about", {
+        title: "About The project",
+        viewData: viewData,
+      });
+    },
   },
 
-  dashboard: async (request, h) => {
+  dashboard: {
+    auth: "jwt",
+    handler: async (request, h) => {
     const userId = request.auth?.credentials?._id;
     const points = await db.pointsStore.getAllPointsForUserId(
       userId.toString(),
@@ -43,9 +51,12 @@ export const mainController = {
       isDashboard: true,
       viewData: viewData,
     });
+    },
   },
 
-  account: async (request, h) => {
+  account: {
+    auth: "jwt",
+    handler: async (request, h) => {
     const isAdmin = await db.usersStore.userIsAdmin(
       request.auth.credentials._id,
     );
@@ -68,9 +79,12 @@ export const mainController = {
       viewData.infoClass = "has-text-danger";
     }
     return h.view("./pages/account", { title: "Account", viewData: viewData });
+    },
   },
 
-   point: async (request, h) => {
+  point: {
+    auth: "jwt",
+    handler: async (request, h) => {
       const isAdmin = await db.usersStore.userIsAdmin(
         request.auth.credentials._id,
       );
@@ -81,10 +95,6 @@ export const mainController = {
         userIsAdmin: isAdmin,
         username: request.auth.credentials.username,
       };
-
-      // console.log("id: ", pid);
-      // console.log("UserPoints:", userPoints);
-
       if (userPoints.includes(pid)) { // https://stackoverflow.com/questions/237104/how-do-i-check-if-an-array-includes-a-value-in-javascript
         // user has the point id in his list
         const point = await db.pointsStore.getPointDataById(pid);
@@ -122,31 +132,7 @@ export const mainController = {
       return h.view("./pages/point", { title: "Point", viewData: viewData });
       }
     },
-
-
-    // users: async (request, h) => {
-    //   const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
-    //   let allUsers = [];
-    //   if (isAdmin) {
-    //     allUsers = await db.usersStore.getAllUsers();
-    //   } else { 
-    //     return h.redirect("/");
-    //   }
-    //   const viewData = {
-    //     isAuthenticated: request.auth.isAuthenticated,
-    //     userIsAdmin: isAdmin,
-    //     username: request.auth.credentials.username,
-    //     users: allUsers
-    //   };
-    //   if (request.query.info === "deleted") {
-    //     viewData.message = "The user has been deleted.";
-    //   }
-    //   if (request.query.error === "admin") {
-    //     viewData.message = "The user is Admin. Remove admin status first.";
-    //   }
-    //   await db.usersStore.isLastAdmin();
-    //   return h.view("./pages/users", { title: "Users", viewData: viewData });
-    // },
+  },
 
     users: {
       auth: "jwt",
@@ -177,31 +163,9 @@ export const mainController = {
       },
     },
 
-    // users: async (request, h) => {
-    //   const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
-    //   let allUsers = [];
-    //   if (isAdmin) {
-    //     allUsers = await db.usersStore.getAllUsers();
-    //   } else { 
-    //     return h.redirect("/");
-    //   }
-    //   const viewData = {
-    //     isAuthenticated: request.auth.isAuthenticated,
-    //     userIsAdmin: isAdmin,
-    //     username: request.auth.credentials.username,
-    //     users: allUsers
-    //   };
-    //   if (request.query.info === "deleted") {
-    //     viewData.message = "The user has been deleted.";
-    //   }
-    //   if (request.query.error === "admin") {
-    //     viewData.message = "The user is Admin. Remove admin status first.";
-    //   }
-    //   await db.usersStore.isLastAdmin();
-    //   return h.view("./pages/users", { title: "Users", viewData: viewData });
-    // },
-
-    user: async (request, h) => {
+  user: {
+    auth: "jwt",
+    handler: async (request, h) => {
       const isAdmin = await db.usersStore.userIsAdmin(request.auth.credentials._id);
       if (!isAdmin) {
         return h.redirect("/");
@@ -214,8 +178,11 @@ export const mainController = {
       };
       return h.view("./pages/user", { title: "Users", viewData: viewData });
     },
+  },
 
-    myPoints: async (request, h) => {
+  myPoints: {
+    auth: "jwt",
+    handler: async (request, h) => {
       const userId = request.auth?.credentials?._id;
       const points = await db.pointsStore.getAllPointsForUserId(
         userId.toString(),
@@ -233,4 +200,5 @@ export const mainController = {
         viewData: viewData,
       });
     },
+  },
 };
