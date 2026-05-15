@@ -1,6 +1,6 @@
 <section class="page-hero">
   <div class="container">
-    <h1 class="page-hero__title">Account</h1>
+    {{!-- <h1 class="page-hero__title">Account</h1> --}}
     <p class="page-hero__subtitle">Hi, {{viewData.username}} {{#if viewData.userIsAdmin}}<span class="tag is-primary is-light ml-2">Admin</span>{{/if}}</p>
   </div>
 </section>
@@ -9,3 +9,6 @@
     {{> forms/add-api-form }}
   </div>
 </div>
+
+
+{{!-- TODO: add ability to change password, delete account  --}}

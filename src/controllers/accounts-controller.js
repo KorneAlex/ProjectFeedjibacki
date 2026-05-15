@@ -22,7 +22,7 @@ export const accountController = {
         return h.redirect("/");
       }
       return h.view("./pages/signup", {
-        title: "signup Page",
+        title: "Sign up",
         viewData: viewData,
       });
     },
@@ -39,7 +39,7 @@ export const accountController = {
           infoClass: "has-text-danger",
         };
         return h
-          .view("./pages/signup", { title: "Signup Page", viewData })
+          .view("./pages/signup", { title: "Sign up", viewData })
           .takeover();
       },
     },
@@ -52,7 +52,7 @@ export const accountController = {
       };
       await db.usersStore.addUser(payload);
       return h.view("./pages/login", {
-        title: "Signup Successful",
+        title: "Sign up successful",
         viewData: viewData,
       });
     },
@@ -68,7 +68,7 @@ export const accountController = {
         return h.redirect("/");
       }
       return h.view("./pages/login", {
-        title: "Login Page",
+        title: "Log in",
         viewData: viewData,
       });
     },
@@ -82,7 +82,7 @@ export const accountController = {
       const user = await db.usersStore.credentialsCheck(emailOrUsername, emailOrUsername, password);
       if (!user) {
         return h.view("./pages/login", {
-          title: "Login Page",
+          title: "Log in",
           viewData: {
             infoMessage: "Invalid credentials. Please try again.",
             infoClass: "has-text-danger",

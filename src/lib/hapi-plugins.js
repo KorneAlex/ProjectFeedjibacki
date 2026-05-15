@@ -14,7 +14,7 @@ const Pack = require("../../package.json");
 
 export const swaggerOptions = {
   info: {
-    title: 'NoteOnMap API Documentation',
+    title: 'Feedjibacki API Documentation',
     version: Pack.version,
     },
   grouping: "tags",

@@ -3,12 +3,12 @@
     <table class="table is-fullwidth centered__table is-striped is-narrow">
         <tr>
             {{!-- <th>ID</th> --}}
-            <th>Name</th>
-            <th>Description</th>
+            <th>Product</th>
+            <th>Feedback</th>
             <th>Latitude</th>
             <th>Longitude</th>
             <th>Created</th>
-            <th>Categories</th>
+            <th>Category</th>
             <th>Actions</th>
         </tr>
     {{#each viewData.points}}
@@ -21,9 +21,9 @@
     <td>{{this.time.created}}</td>
     <td>{{#if this.data.categories}}{{this.data.categories}}{{else}}No categories{{/if}}</td>          
             <td class="is-flex is-justify-content-center">
-            <a href="/point?id={{this._id}}" title="View Point" class="button list-button">{{>svg/point }}</a>
+            <a href="/point?id={{this._id}}" title="View feedback" class="button list-button">{{>svg/point }}</a>
             {{!-- TODO: fix this to delete point by link --}}
-            <a href="/point?id={{this._id}}" title="Delete Point" class="button list-button">{{>svg/delete }}</a> 
+            <a href="/point?id={{this._id}}" title="Delete feedback" class="button list-button">{{>svg/delete }}</a> 
             </td>
         </tr>
     {{/each}}

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const noteOnMapService = {
+export const appService = {
     noteOnMapUrl:process.env.SERVICE_URL,
 
   async createUser(user) {

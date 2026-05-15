@@ -10,13 +10,15 @@ export const routes = [
     // pages
     { method: 'GET', path: '/', config: mainController.index },
     { method: 'GET', path: '/about', config: mainController.about },
-    { method: 'GET', path: '/dashboard', config: mainController.dashboard },
+    { method: 'GET', path: '/map', config: mainController.map },
     { method: 'GET', path: '/account', config: mainController.account },
     { method: 'GET', path: '/point', config: mainController.point },
     { method: 'GET', path: '/users', config: mainController.users },
     { method: 'GET', path: '/user/{uid}/delete', config: actionsController.deleteUser },
     { method: 'GET', path: '/user', config: mainController.user },
     { method: 'GET', path: '/my-points', config: mainController.myPoints },
+    { method: 'GET', path: '/my-collections', config: mainController.myCollections },
+    { method: 'GET', path: '/my-categories', config: mainController.myCategories },
 
     // account pages
     { method: 'GET', path: '/login', config: accountController.login },
@@ -29,7 +31,7 @@ export const routes = [
     
     // actions
     { method: 'POST', path: '/addApiToAccount', config: actionsController.addApiKey },
-    { method: 'POST', path: '/dashboard/add-point/submit', config: actionsController.addPoint },
+    { method: 'POST', path: '/map/add-point/submit', config: actionsController.addPoint },
 
     // points
     { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },

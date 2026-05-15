@@ -28,9 +28,32 @@
 
 /* Navbar: ensure it stays on top and works on mobile */
 .navbar {
+  position: relative;
   z-index: 99;
   padding-top: 1rem;
   padding-bottom: 1rem;
+}
+
+.navbar-page-header {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.navbar-page-title {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.navbar-page-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.95rem;
+  color: var(--bulma-text-weak, #7a7a7a);
+  white-space: nowrap;
 }
 
 .navbar-brand .navbar-item svg {

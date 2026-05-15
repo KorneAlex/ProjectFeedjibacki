@@ -1,7 +1,7 @@
 {
-  "name": "NoteOnMap",
+  "name": "Feedjibacki",
   "version": "1.0.0",
-  "description": "OleksandrKorniienko_WebDev2_Assignment1 NoteOnMap is a web application allowing users to create their own collections of notes and points on the map",
+  "description": "OleksandrKorniienko_WebDev2_Assignment1 Feedjibacki is a web application for saving user feedback on products and the places and times they were purchased",
   "license": "MIT",
   "author": "OleksandrKorniienko",
   "type": "module",

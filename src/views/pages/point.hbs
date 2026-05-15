@@ -1,11 +1,10 @@
-<div style="text-align: center; margin-bottom: 2rem;">
-  <div class="title is-2 pt-5 mb-0"><span>Point {{ viewData.pointData.data.name }}</span></div> 
-  <p>{{ viewData.pointData._id }}</p>
   {{#if viewData.message }}
+<div style="text-align: center; margin-bottom: 2rem;">
     <p class="has-text-danger">{{ viewData.message }}</p>
 </div>
-{{else}}
-</div>
+{{/if}}
+
+{{#if viewData.pointData }}
 
 
 <style>
@@ -44,7 +43,7 @@
 
     <div class="p-2">
         <div class="is-flex is-flex-direction-row">
-            <div class="card-header-title point__summary--header">Location<br></div>
+            <div class="card-header-title point__summary--header">Where you bought it</div>
             <div class="card-header-icon"> </div>
         </div>
         <div class="point__summary--info card-content">
@@ -55,7 +54,7 @@
 
     <div class="p-2">
         <div class="is-flex is-flex-direction-row">
-            <div class="card-header-title point__summary--header">Description</div>
+            <div class="card-header-title point__summary--header">Feedback</div>
             <div class="card-header-icon"></div>
         </div>
         <div class="card-content point__summary--info">
@@ -65,7 +64,7 @@
 
     <div class="p-2">
         <div class="is-flex is-flex-direction-row">
-            <div class="card-header-title point__summary--header">Categories: {{ viewData.pointData.data.categories.length }}</div>
+            <div class="card-header-title point__summary--header">Product category: {{ viewData.pointData.data.categories.length }}</div>
             <div class="card-header-icon"></div>
         </div>
         <div class="is-flex is-flex-direction-row card-content point__summary--info">
@@ -77,7 +76,7 @@
 
     <div class="p-2">
         <div class="is-flex is-flex-direction-row">
-            <div class="card-header-title point__summary--header">Created on</div>
+            <div class="card-header-title point__summary--header">Purchased / recorded on</div>
             <div class="card-header-icon"></div>
         </div>
         <div class="card-content point__summary--info">

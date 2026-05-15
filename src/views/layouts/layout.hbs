@@ -4,7 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{title}}</title>
+  <meta name="description" content="Feedjibacki — save feedback on products, where you bought them, and when.">
+  <title>{{#if title}}{{title}} · Feedjibacki{{else}}Feedjibacki{{/if}}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
   <link href='https://cdn.maptiler.com/maptiler-sdk-js/v3.10.2/maptiler-sdk.css' rel='stylesheet' />
   <link rel="stylesheet" href="/css/variables.css">
@@ -15,7 +16,7 @@
   <link rel="stylesheet" href="/css/home.css">
 </head>
 
-<body class="{{#if isDashboard}}page-dashboard{{else}}page-default{{/if}}">
+<body class="{{#if isDashboard}}page-map{{else}}page-default{{/if}}">
   {{#if isDashboard}}
   {{{content}}}
   {{else}}

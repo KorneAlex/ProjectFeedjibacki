@@ -1,4 +1,4 @@
-# NoteOnMap
+# Feedjibacki
 
 A web application that allows users to create **collections of locations on a map**, attach **notes** and filter them to display a specific category.
 
@@ -59,7 +59,7 @@ Development Tools
 Clone the repository
 
 ```bash
-git clone https://github.com/KorneAlex/NoteOnMap.git
+git clone https://github.com/KorneAlex/Feedjibacki.git
 cd note-on-map
 ```
 

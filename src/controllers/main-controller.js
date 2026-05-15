@@ -1,3 +1,4 @@
+import { title } from "node:process";
 import { db } from "../models/db.js";
 
 export const mainController = {
@@ -10,8 +11,8 @@ export const mainController = {
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
       };
       return h.view("index", {
-        title: "Home Page",
-        message: `Welcome to the Home Page!`,
+        title: "Feedjibacki — Home",
+        message: `Welcome to Feedjibacki!`,
         viewData: viewData,
       });
     },
@@ -26,13 +27,13 @@ export const mainController = {
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
       };
       return h.view("./pages/about", {
-        title: "About The project",
+        title: "About Feedjibacki",
         viewData: viewData,
       });
     },
   },
 
-  dashboard: {
+  map: {
     auth: "jwt",
     handler: async (request, h) => {
     const userId = request.auth?.credentials?._id;
@@ -46,8 +47,8 @@ export const mainController = {
       pointsJson: JSON.stringify(points),
       mapsApiKey: await db.usersStore.getApiKeyByUserId(userId),
     };
-    return h.view("./pages/dashboard", {
-      title: "Dashboard",
+    return h.view("./pages/map", {
+      title: "Feedback map",
       isDashboard: true,
       viewData: viewData,
     });
@@ -61,6 +62,7 @@ export const mainController = {
       request.auth.credentials._id,
     );
     const viewData = {
+      title: "Account",
       isAuthenticated: request.auth.isAuthenticated,
       userIsAdmin: isAdmin,
       // TODO: to reduce load on mongodb make requests to local storage. if no local storage try to get it from mongodb
@@ -99,10 +101,12 @@ export const mainController = {
         // user has the point id in his list
         const point = await db.pointsStore.getPointDataById(pid);
         const viewData = {
+            title: point.data.name,
+            subtitle: "Product feedback · id: " + pid,
             ...viewDataBasic,
             pointData: point
           };
-          return h.view("./pages/point", { title: "Point", viewData: viewData });
+          return h.view("./pages/point", { title: "Feedback", viewData: viewData });
       } else {
         // user doesn't have the point id in his list
         if (isAdmin) {
@@ -111,25 +115,27 @@ export const mainController = {
           if (point != null){
             // point exist
             const viewData = {
+              title: point.data.name,
+              subtitle: "Product feedback (admin view)",
               ...viewDataBasic,
               pointData: point
             };
-            return h.view("./pages/point", { title: "Point", viewData: viewData });
+            return h.view("./pages/point", { title: "Feedback", viewData: viewData });
           } else {
-            // The point doesn't exist for the admin user.
+            // The feedback entry doesn't exist for the admin user.
             const viewData = {
             ...viewDataBasic,
-            message: "The point doesn't exist."
+            message: "This feedback entry does not exist."
             }
-            return h.view("./pages/point", { title: "Point", viewData: viewData });
+            return h.view("./pages/point", { title: "Feedback", viewData: viewData });
         }
       }
         // Message for the user
         const viewData = {
         ...viewDataBasic,
-        message: "The point doesn't exist or you don't have access to this point"
+        message: "This feedback entry does not exist or you do not have access to it."
       };
-      return h.view("./pages/point", { title: "Point", viewData: viewData });
+      return h.view("./pages/point", { title: "Feedback", viewData: viewData });
       }
     },
   },
@@ -146,6 +152,7 @@ export const mainController = {
         }
         allUsers = await db.usersStore.getAllUsers();
         const viewData = {
+          title: "Users",
           isAuthenticated: request.auth.isAuthenticated,
           userIsAdmin: isAdmin,
           username: request.auth.credentials.username,
@@ -171,6 +178,7 @@ export const mainController = {
         return h.redirect("/");
       }
       const viewData = {
+        title: isAdmin ? "Admin " + request.auth.credentials.username: "User " + request.auth.credentials.username,
         isAuthenticated: request.auth.isAuthenticated,
         userIsAdmin: isAdmin,
         username: request.auth.credentials.username,
@@ -188,6 +196,8 @@ export const mainController = {
         userId.toString(),
       );
       const viewData = {
+        title: "My Points",
+        subtitle: "All shops you have visited",
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
@@ -196,9 +206,55 @@ export const mainController = {
       };
       return h.view("./pages/my-points", {
         title: "My Points",
-        isMyPoints: true,
+        // isMyPoints: true,
         viewData: viewData,
       });
     },
   },
+
+  myCollections: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id;
+      const points = await db.pointsStore.getAllPointsForUserId(
+        userId.toString(),
+      );
+      const viewData = {
+        title: "My Collections",
+        subtitle: "Feedback grouped by product category",
+        isAuthenticated: request.auth.isAuthenticated,
+        userId,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+        pointsJson: JSON.stringify(points),
+        points: points,
+      };
+      return h.view("./pages/my-collections", {
+        title: "My Collections",
+        viewData: viewData,
+      });
+    },
+    },
+
+  myCategories: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id;
+      const points = await db.pointsStore.getAllPointsForUserId(
+        userId.toString(),
+      );
+      const viewData = {
+        title: "My Categories",
+        subtitle: "Add categories to group your products",
+        isAuthenticated: request.auth.isAuthenticated,
+        userId,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+        pointsJson: JSON.stringify(points),
+        points: points,
+      };
+      return h.view("./pages/my-categories", {
+        title: "My Categories",
+        viewData: viewData,
+      });
+    },
+    },
 };

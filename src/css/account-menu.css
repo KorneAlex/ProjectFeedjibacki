@@ -43,11 +43,11 @@
   pointer-events: none;
 }
 
-/* When burger menu is visible (small screens), shift account button left — only when not dashboard */
+/* When burger menu is visible (small screens), shift account button left — only when not map */
 @media screen and (max-width: 1023px) {
-  body:not(.page-dashboard) .account-menu-wrapper,
-  body:not(.page-dashboard) .account-icon,
-  body:not(.page-dashboard) .account-icon-bg {
+  body:not(.page-map) .account-menu-wrapper,
+  body:not(.page-map) .account-icon,
+  body:not(.page-map) .account-icon-bg {
     right: 4rem;
   }
 }

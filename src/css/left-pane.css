@@ -40,7 +40,7 @@
   position: fixed;
   left: 10px;
   top: 10px;
-  width: 305px;
+  width: 245px;
   height: calc(100vh - 20px);
   background-color: var(--bulma-body-background-color);
   border-radius: 1rem;

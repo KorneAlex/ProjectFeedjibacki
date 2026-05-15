@@ -1,10 +1,10 @@
 <section class="home-hero">
   <div class="container">
-    <h1 class="home-hero__title">NoteOnMap</h1>
-    <p class="home-hero__subtitle">Your places, on the map</p>
-    <p class="home-hero__tagline">A place to keep your places :)</p>
+    <h1 class="home-hero__title">Feedjibacki</h1>
+    <p class="home-hero__subtitle">Save feedback on products — where you bought them and when</p>
+    <p class="home-hero__tagline">Your reviews, tied to real places on the map</p>
     {{#if viewData.isAuthenticated}}
-      <a href="/dashboard" class="button">Open Dashboard</a>
+      <a href="/map" class="button">Open map</a>
     {{else}}
       <a href="/signup" class="button">Get started — Sign up</a>
     {{/if}}
@@ -14,28 +14,28 @@
 <div class="container">
   <div class="home-features">
     <div class="home-feature">
-      <div class="home-feature__icon" aria-hidden="true">📍</div>
-      <h2 class="home-feature__title">Pin your spots</h2>
-      <p class="home-feature__text">Save notes and locations on an interactive map and find them anytime.</p>
+      <div class="home-feature__icon" aria-hidden="true">🛒</div>
+      <h2 class="home-feature__title">Log every purchase</h2>
+      <p class="home-feature__text">Record what you think about a product, the shop or place you bought it, and when — all on one map.</p>
     </div>
     <div class="home-feature">
-      <div class="home-feature__icon" aria-hidden="true">🗺️</div>
-      <h2 class="home-feature__title">One map, your data</h2>
-      <p class="home-feature__text">Use your own map API key for full control. Your points stay in your account.</p>
+      <div class="home-feature__icon" aria-hidden="true">📍</div>
+      <h2 class="home-feature__title">Place &amp; time matter</h2>
+      <p class="home-feature__text">Pin purchase locations and revisit your feedback whenever you shop nearby again.</p>
     </div>
     <div class="home-feature">
       <div class="home-feature__icon" aria-hidden="true">✏️</div>
-      <h2 class="home-feature__title">Simple & fast</h2>
-      <p class="home-feature__text">Add, edit, and manage points with a clean interface that works on any device.</p>
+      <h2 class="home-feature__title">Simple &amp; fast</h2>
+      <p class="home-feature__text">Add, browse, and manage product feedback with a clean interface on any device.</p>
     </div>
   </div>
 
   <section class="home-cta">
     {{#if viewData.isAuthenticated}}
-      <h2 class="home-cta__title">Ready to add more points?</h2>
-      <a href="/dashboard" class="button is-primary">Go to Dashboard</a>
+      <h2 class="home-cta__title">Ready to log more feedback?</h2>
+      <a href="/map" class="button is-primary">Go to map</a>
     {{else}}
-      <h2 class="home-cta__title">Create an account and start mapping</h2>
+      <h2 class="home-cta__title">Create an account and start sharing feedback</h2>
       <a href="/signup" class="button is-primary">Sign up</a>
       <span class="home-cta__sep">or</span>
       <a href="/login" class="button is-light">Log in</a>
