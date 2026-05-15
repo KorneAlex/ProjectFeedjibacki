@@ -87,7 +87,37 @@ export const addPointFormSchema = Joi.object({
   name: Joi.string().min(2).max(20).required(),
   description: Joi.string().max(200),
   imgUrl: Joi.string().uri().optional(),
-  categories: Joi.array().allow("").optional(), // not ready yet
+  categories: Joi.string().allow("").optional(), // AI help
+});
+
+const optionalPriceScalar = Joi.alternatives()
+  .try(Joi.number().min(0), Joi.string().allow(""))
+  .optional();
+
+/**
+ * Web form POST `/items/create-item`.
+ * Uses flat names (e.g. paid_value) because Hapi leaves bracket keys like paid[value]
+ * as literal properties, which Joi rejects.
+ */
+export const createItemFormSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  description: Joi.string().max(500).allow("").optional(),
+  categories: Joi.string().allow("").optional(),
+  collections: Joi.string().allow("").optional(),
+  currency: Joi.string().max(3).allow("").uppercase().optional(),
+  paid_value: optionalPriceScalar,
+  normal_price_value: optionalPriceScalar,
+  sale_price_value: optionalPriceScalar,
+  rating: Joi.alternatives()
+    .try(
+      Joi.number().integer().min(0).max(100),
+      Joi.string().allow(""),
+    )
+    .optional(),
+  comments_owner: Joi.string().max(500).allow("").optional(),
+  shop: Joi.string().max(200).allow("").optional(),
+  img_cover: Joi.string().max(2048).allow("").optional(),
+  access: Joi.string().valid("shared", "private").optional(),
 });
 
 export const pointUpdateSchema = Joi.object({
@@ -102,3 +132,66 @@ export const pointUpdateSchema = Joi.object({
     categories: Joi.array().items(Joi.string().alphanum().min(1).max(20)), // AI help
   },
 });
+
+// Item schemas (MongoDB document: metadata + data)
+const itemPriceValueSchema = Joi.object({
+  value: Joi.alternatives()
+    .try(Joi.number().min(0), Joi.string().allow(""))
+    .optional(),
+});
+
+const itemPriceSchema = Joi.object({
+  currency: Joi.string().max(3).uppercase().allow("").optional(),
+  normal_price: itemPriceValueSchema.optional(),
+  sale_price: itemPriceValueSchema.optional(),
+  paid: itemPriceValueSchema.optional(),
+});
+
+const itemTimeSchema = Joi.object({
+  created: Joi.alternatives()
+    .try(Joi.date(), Joi.string().allow(""))
+    .optional(),
+  edited: Joi.alternatives()
+    .try(Joi.date(), Joi.string().allow(""))
+    .optional(),
+  deleted: Joi.alternatives()
+    .try(Joi.date(), Joi.string().allow(""))
+    .optional(),
+});
+
+const itemRatingSchema = Joi.object({
+  owner: Joi.number().integer().min(0).max(100).optional(),
+  others: Joi.array().items(Joi.number().integer().min(0).max(100)).optional(),
+});
+
+const itemCommentsSchema = Joi.object({
+  owner: Joi.string().max(500).allow("").optional(),
+  others: Joi.array().items(Joi.string().max(500)).optional(),
+});
+
+const itemDataSchema = Joi.object({
+  name: Joi.string().min(1).max(100).required(),
+  description: Joi.string().max(500).allow("").optional(),
+  price: itemPriceSchema.optional(),
+  collections: Joi.array().items(Joi.string()).optional(),
+  categories: Joi.array().items(Joi.string().min(1).max(80)).optional(),
+  rating: itemRatingSchema.optional(),
+  comments: itemCommentsSchema.optional(),
+  shop: Joi.string().allow("").optional(),
+  img: Joi.object({
+    cover: Joi.string().max(2048).allow("").optional(),
+    pictures: Joi.array().items(Joi.string().max(2048).allow("")).optional(),
+  }).optional(),
+});
+
+const itemMetadataSchema = Joi.object({
+  time: itemTimeSchema.optional(),
+  owner: Joi.string().required(),
+  access: Joi.string().valid("shared", "private").required(),
+});
+
+export const itemSchema = Joi.object({
+  _id: Joi.any().optional(),
+  metadata: itemMetadataSchema.required(),
+  data: itemDataSchema.required(),
+}).unknown(true);

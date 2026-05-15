@@ -59,7 +59,7 @@ Development Tools
 Clone the repository
 
 ```bash
-git clone https://github.com/KorneAlex/Feedjibacki.git
+git clone https://github.com/KorneAlex/NoteOnMap.git
 cd note-on-map
 ```
 

@@ -19,6 +19,7 @@ export const routes = [
     { method: 'GET', path: '/my-points', config: mainController.myPoints },
     { method: 'GET', path: '/my-collections', config: mainController.myCollections },
     { method: 'GET', path: '/my-categories', config: mainController.myCategories },
+    { method: 'GET', path: '/my-items', config: mainController.myItems },
 
     // account pages
     { method: 'GET', path: '/login', config: accountController.login },
@@ -32,6 +33,7 @@ export const routes = [
     // actions
     { method: 'POST', path: '/addApiToAccount', config: actionsController.addApiKey },
     { method: 'POST', path: '/map/add-point/submit', config: actionsController.addPoint },
+    { method: 'POST', path: '/items/create-item', config: actionsController.createItem },
 
     // points
     { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },

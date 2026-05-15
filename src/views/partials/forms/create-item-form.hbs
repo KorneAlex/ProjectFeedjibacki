@@ -1,0 +1,245 @@
+<form
+  class="box mb-5"
+  action="/items/create-item"
+  method="POST"
+  name="create-item-form"
+  autocomplete="on"
+>
+  <h2 class="title is-5 mb-2">Add an item</h2>
+  <p class="subtitle is-6 has-text-grey mb-4">Fields map to
+    <code>data</code>
+    and
+    <code>metadata</code>
+    on the item document (price slots use a numeric value or leave blank for an empty string).</p>
+
+  {{#if viewData.infoMessage}}
+    <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+  {{/if}}
+
+  <div class="field">
+    <label class="label" for="item-name">Name</label>
+    <div class="control">
+      <input
+        id="item-name"
+        class="input"
+        type="text"
+        name="name"
+        placeholder="Item or product name"
+        required
+        minlength="2"
+        maxlength="100"
+      />
+    </div>
+    <p class="help">2–100 characters.</p>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-description">Description</label>
+    <div class="control">
+      <textarea
+        id="item-description"
+        class="textarea"
+        name="description"
+        placeholder="Notes, quality, where you bought it, etc."
+        rows="3"
+        maxlength="500"
+      ></textarea>
+    </div>
+    <p class="help">Optional, up to 500 characters.</p>
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-half-tablet">
+      <div class="field">
+        <label class="label" for="item-categories">Categories</label>
+        <div class="control">
+          <input
+            id="item-categories"
+            class="input"
+            type="text"
+            name="categories"
+            placeholder="frozen food, pre-cooked (comma-separated)"
+            maxlength="400"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="column is-half-tablet">
+      <div class="field">
+        <label class="label" for="item-collections">Collections</label>
+        <div class="control">
+          <input
+            id="item-collections"
+            class="input"
+            type="text"
+            name="collections"
+            placeholder="ok food, lidl (comma-separated)"
+            maxlength="400"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-access">Access</label>
+    <div class="control">
+      <div class="select is-fullwidth">
+        <select id="item-access" name="access">
+          <option value="private" selected>Private</option>
+          <option value="shared">Shared</option>
+        </select>
+      </div>
+    </div>
+    <p class="help">Stored on
+      <code>metadata.access</code>.</p>
+  </div>
+
+  <fieldset class="mb-4">
+    <legend class="label mb-3">Price</legend>
+    <div class="columns is-multiline">
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label" for="item-shop">Shop</label>
+          <div class="control">
+            <input
+              id="item-shop"
+              class="input"
+              type="text"
+              name="shop"
+              maxlength="200"
+              placeholder="Shop id or retailer name"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-currency">Currency (ISO)</label>
+          <div class="control">
+            <input
+              id="price-currency"
+              class="input"
+              type="text"
+              name="currency"
+              value="EUR"
+              maxlength="3"
+              autocapitalize="characters"
+              inputmode="text"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-paid">Paid (
+            <code>data.price.paid.value</code>)</label>
+          <div class="control">
+            <input
+              id="price-paid"
+              class="input"
+              type="number"
+              name="paid_value"
+              step="any"
+              min="0"
+              placeholder="e.g. 12.99"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-normal">Normal price</label>
+          <div class="control">
+            <input
+              id="price-normal"
+              class="input"
+              type="number"
+              name="normal_price_value"
+              step="any"
+              min="0"
+              placeholder="e.g. 19.99"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-sale">Sale price</label>
+          <div class="control">
+            <input
+              id="price-sale"
+              class="input"
+              type="number"
+              name="sale_price_value"
+              step="any"
+              min="0"
+              placeholder="Leave blank if not on sale"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="columns is-multiline">
+    <div class="column is-two-thirds-tablet">
+      <div class="field">
+        <label class="label" for="comments-owner">Your comment (
+          <code>data.comments.owner</code>)</label>
+        <div class="control">
+          <textarea
+            id="comments-owner"
+            class="textarea"
+            name="comments_owner"
+            placeholder="Feedback stored as the owner comment"
+            rows="2"
+            maxlength="500"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="column is-one-third-tablet">
+      <div class="field">
+        <label class="label" for="item-rating">Your rating (
+          <code>data.rating.owner</code>, 0–100)</label>
+        <div class="control">
+          <input
+            id="item-rating"
+            class="input"
+            type="number"
+            name="rating"
+            min="0"
+            max="100"
+            step="1"
+            placeholder="optional"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-img-cover">Cover image URL (
+      <code>data.img.cover</code>)</label>
+    <div class="control">
+      <input
+        id="item-img-cover"
+        class="input"
+        type="url"
+        name="img_cover"
+        placeholder="https://..."
+        maxlength="2048"
+      />
+    </div>
+    <p class="help">Optional. Picture slots can be added later; new items start with an empty
+      <code>pictures</code>
+      array.</p>
+  </div>
+
+  <div class="field is-grouped">
+    <div class="control">
+      <button class="button is-primary" type="submit">Save item</button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,32 @@
+{{!-- https://www.w3schools.com/html/html_tables.asp --}}
+{{!-- TODO: check the scroll behavior when there are a lot of records --}}
+<div style="max-height: 40rem; overflow-y: auto;">
+    <table class="table is-fullwidth centered__table is-striped is-narrow">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Categories</th>
+            <th>My Rating</th>
+            <th>Actions</th>
+        </tr>
+    {{#each viewData.items}}
+        <tr>
+            <td>{{this.data.name}}</td>
+            <td style="max-width: 200px">{{this.data.description}}</td>
+            <td>
+              {{#with this.data.price}}
+                {{#with paid}}{{value}}{{/with}}
+                {{#if currency}} {{currency}}{{/if}}
+              {{/with}}
+            </td>
+            <td>{{#each this.data.categories}}{{#unless @first}}, {{/unless}}{{this}}{{/each}}</td>
+            <td>{{this.data.rating.owner}}</td>
+            <td class="is-flex">
+            <a href="/items?item-id={{this._id}}" class="button list-button">{{>svg/point }}</a>
+            <a href="/items?item-id={{this._id}}" class="button list-button">{{>svg/delete }}</a>
+            </td>
+        </tr>
+    {{/each}}
+    </table>
+</div>

@@ -1,4 +1,3 @@
-import { title } from "node:process";
 import { db } from "../models/db.js";
 
 export const mainController = {
@@ -216,7 +215,7 @@ export const mainController = {
     auth: "jwt",
     handler: async (request, h) => {
       const userId = request.auth?.credentials?._id;
-      const points = await db.pointsStore.getAllPointsForUserId(
+      const collections = await db.collectionsStore.getAllCollectionsForUserId(
         userId.toString(),
       );
       const viewData = {
@@ -225,8 +224,8 @@ export const mainController = {
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
-        pointsJson: JSON.stringify(points),
-        points: points,
+        collectionsJson: JSON.stringify(collections),
+        collections: collections,
       };
       return h.view("./pages/my-collections", {
         title: "My Collections",
@@ -239,7 +238,7 @@ export const mainController = {
     auth: "jwt",
     handler: async (request, h) => {
       const userId = request.auth?.credentials?._id;
-      const points = await db.pointsStore.getAllPointsForUserId(
+      const categories = await db.categoriesStore.getAllCategoriesForUserId(
         userId.toString(),
       );
       const viewData = {
@@ -248,11 +247,34 @@ export const mainController = {
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
-        pointsJson: JSON.stringify(points),
-        points: points,
+        categoriesJson: JSON.stringify(categories),
+        categories: categories,
       };
       return h.view("./pages/my-categories", {
         title: "My Categories",
+        viewData: viewData,
+      });
+    },
+    },
+
+  myItems: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id;
+      const items = await db.itemsStore.getAllItemsForUserId(
+        userId.toString(),
+      );
+      const viewData = {
+        title: "My Items",
+        subtitle: "Manage your items and feedback",
+        isAuthenticated: request.auth.isAuthenticated,
+        userId,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+        itemsJson: JSON.stringify(items),
+        items: items
+      };
+      return h.view("./pages/my-items", {
+        title: "My Items",
         viewData: viewData,
       });
     },
