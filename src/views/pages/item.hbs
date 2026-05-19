@@ -1,0 +1,132 @@
+<div class="page-content">
+  <div class="container container--wide">
+    {{#if viewData.message}}
+      <div class="notification is-danger is-light">
+        <p>{{viewData.message}}</p>
+        <a class="button is-light mt-3" href="/my-items">Back to My items</a>
+      </div>
+    {{else}}
+      {{#if viewData.infoMessage}}
+        <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+      {{/if}}
+
+      {{#if viewData.editMode}}
+        {{> forms/edit-item-form }}
+      {{else}}
+        <div class="box mb-5">
+          <div class="is-flex is-justify-content-space-between is-align-items-flex-start is-flex-wrap-wrap gap-2 mb-4">
+            <div>
+              <h2 class="title is-4 mb-2">{{viewData.item.data.name}}</h2>
+              <p class="has-text-grey is-size-7 mb-1">Access: {{viewData.item.metadata.access}}</p>
+              <p class="has-text-grey is-size-7 mb-1">Created: {{viewData.item.metadata.time.created}}</p>
+              {{#if viewData.item.metadata.time.edited}}
+                <p class="has-text-grey is-size-7">Last edited: {{viewData.item.metadata.time.edited}}</p>
+              {{/if}}
+            </div>
+            {{#if viewData.isOwner}}
+            <div class="buttons">
+              <a class="button is-primary is-light" href="/items/{{viewData.item._id}}?edit=1">Edit</a>
+              <a class="button is-danger is-light" href="/items/{{viewData.item._id}}/delete">Delete</a>
+            </div>
+            {{/if}}
+          </div>
+
+          {{#if viewData.item.data.img.cover}}
+            <figure class="image mb-4" style="max-width: 320px;">
+              <img src="{{viewData.item.data.img.cover}}" alt="Cover for {{viewData.item.data.name}}" />
+            </figure>
+          {{/if}}
+
+          {{#if viewData.item.data.description}}
+            <div class="mb-4">
+              <h3 class="title is-6 mb-2">Description</h3>
+              <p>{{viewData.item.data.description}}</p>
+            </div>
+          {{/if}}
+
+          <div class="columns is-multiline mb-4">
+            <div class="column is-half-tablet">
+              <h3 class="title is-6 mb-2">Price</h3>
+              {{#with viewData.item.data.price}}
+                <p><span class="has-text-weight-semibold">Paid:</span>
+                  {{#with paid}}{{#if value}}{{value}}{{else}}—{{/if}}{{else}}—{{/with}}</p>
+                <p><span class="has-text-weight-semibold">Normal:</span>
+                  {{#with normal_price}}{{#if value}}{{value}}{{else}}—{{/if}}{{else}}—{{/with}}</p>
+                <p><span class="has-text-weight-semibold">Sale:</span>
+                  {{#with sale_price}}{{#if value}}{{value}}{{else}}—{{/if}}{{else}}—{{/with}}</p>
+                {{#if currency}}
+                  <p><span class="has-text-weight-semibold">Currency:</span> {{currency}}</p>
+                {{/if}}
+              {{else}}
+                <p class="has-text-grey">No price recorded.</p>
+              {{/with}}
+            </div>
+            <div class="column is-half-tablet">
+              <h3 class="title is-6 mb-2">Shop</h3>
+              {{#if viewData.item.data.shop}}
+                <p>{{viewData.item.data.shop}}</p>
+              {{else}}
+                <p class="has-text-grey">—</p>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="columns is-multiline mb-4">
+            <div class="column is-half-tablet">
+              <h3 class="title is-6 mb-2">Categories</h3>
+              {{#if viewData.item.data.categories.length}}
+                <div class="tags">
+                  {{#each viewData.item.data.categories}}
+                    <span class="tag is-light">{{this}}</span>
+                  {{/each}}
+                </div>
+              {{else}}
+                <p class="has-text-grey">None</p>
+              {{/if}}
+            </div>
+            <div class="column is-half-tablet">
+              <h3 class="title is-6 mb-2">Collections</h3>
+              {{#if viewData.item.data.collections.length}}
+                <div class="tags">
+                  {{#each viewData.item.data.collections}}
+                    <span class="tag is-info is-light">{{this}}</span>
+                  {{/each}}
+                </div>
+              {{else}}
+                <p class="has-text-grey">Not in any collection</p>
+              {{/if}}
+            </div>
+          </div>
+
+          <div class="columns is-multiline">
+            <div class="column is-two-thirds-tablet">
+              <h3 class="title is-6 mb-2">Your comment</h3>
+              {{#if viewData.item.data.comments.owner}}
+                <p>{{viewData.item.data.comments.owner}}</p>
+              {{else}}
+                <p class="has-text-grey">—</p>
+              {{/if}}
+            </div>
+            <div class="column is-one-third-tablet">
+              <h3 class="title is-6 mb-2">Your rating</h3>
+              {{#if viewData.item.data.rating.owner}}
+                <p class="is-size-4 has-text-weight-semibold">{{viewData.item.data.rating.owner}}<span class="is-size-6 has-text-grey"> / 100</span></p>
+              {{else}}
+                <p class="has-text-grey">—</p>
+              {{/if}}
+            </div>
+          </div>
+
+          {{#if viewData.item.data.img.pictures.length}}
+            <div class="mt-4">
+              <h3 class="title is-6 mb-2">Additional pictures</h3>
+              <p class="has-text-grey is-size-7">{{viewData.item.data.img.pictures.length}} image(s) stored</p>
+            </div>
+          {{/if}}
+        </div>
+
+        <a class="button is-light" href="/my-items">&larr; Back to My items</a>
+      {{/if}}
+    {{/if}}
+  </div>
+</div>

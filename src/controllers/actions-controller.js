@@ -3,15 +3,44 @@ import { db } from "../models/db.js";
 import {
   addPointFormSchema,
   createItemFormSchema,
+  createCollectionFormSchema,
+  editCollectionFormSchema,
 } from "../models/joi-schema.js";
 import { cloudinary } from "../lib/cloudinary.js";
 
+/** Splits a comma-separated form field into trimmed non-empty strings. */
 function splitCommaList(str) {
   if (!str || typeof str !== "string") return [];
   return str
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+/** Coerces a single id, an array, or undefined into a string[] (e.g. `collection_ids`). */
+function normalizeIdList(ids) {
+  if (!ids) return [];
+  return (Array.isArray(ids) ? ids : [ids])
+    .map((id) => id?.toString?.() ?? String(id))
+    .filter(Boolean);
+}
+
+/** Maps form `access` to `private` | `public` | `shared` (unknown → `private`). */
+function normalizeItemAccess(access) {
+  if (access === "public") return "public";
+  if (access === "shared") return "shared";
+  return "private";
+}
+
+/** Parses owner rating 0–100 from form input; returns `undefined` when empty/invalid. */
+function parseRatingOwner(rating) {
+  if (rating === undefined || rating === null || rating === "") {
+    return undefined;
+  }
+  const n =
+    typeof rating === "number" ? rating : Number.parseInt(String(rating), 10);
+  if (!Number.isFinite(n)) return undefined;
+  return Math.min(100, Math.max(0, Math.round(n)));
 }
 
 /** Map form/API scalar or `{ value }` to stored `{ value: number | "" }`. */
@@ -29,16 +58,7 @@ function normalizePriceSlot(partOrScalar) {
   return Number.isFinite(n) && n >= 0 ? { value: n } : { value: "" };
 }
 
-function parseRatingOwner(rating) {
-  if (rating === undefined || rating === null || rating === "") {
-    return undefined;
-  }
-  const n =
-    typeof rating === "number" ? rating : Number.parseInt(String(rating), 10);
-  if (!Number.isFinite(n)) return undefined;
-  return Math.min(100, Math.max(0, Math.round(n)));
-}
-
+/** Hapi route handlers for POST/GET form actions (items, collections, points, account). */
 export const actionsController = {
   addApiKey: {
     auth: {
@@ -106,9 +126,10 @@ export const actionsController = {
     validate: {
       payload: createItemFormSchema,
       failAction: async (request, h, err) => {
-        const userId = request.auth.credentials._id;
-        const items = await db.itemsStore.getAllItemsForUserId(
-          userId.toString(),
+        const userId = request.auth.credentials._id.toString();
+        const items = await db.itemsStore.getAllItemsForUserId(userId);
+        const collections = await db.collectionsStore.getAllCollectionsForUserId(
+          userId,
         );
         const viewData = {
           title: "My Items",
@@ -116,8 +137,8 @@ export const actionsController = {
           isAuthenticated: request.auth.isAuthenticated,
           userId,
           userIsAdmin: await db.usersStore.userIsAdmin(userId),
-          itemsJson: JSON.stringify(items),
           items,
+          collections,
           infoMessage: err.details[0].message,
           infoClass: "has-text-danger",
         };
@@ -132,6 +153,7 @@ export const actionsController = {
         description,
         categories,
         collections,
+        collection_ids,
         paid_value,
         normal_price_value,
         sale_price_value,
@@ -147,11 +169,23 @@ export const actionsController = {
       const ratingDoc = { others: [] };
       if (ratingOwner !== undefined) ratingDoc.owner = ratingOwner;
 
-      const accessNorm = access === "shared" ? "shared" : "private";
+      const accessNorm = normalizeItemAccess(access);
+
+      const userId = request.auth.credentials._id.toString();
+      const collectionIds = normalizeIdList(collection_ids);
+      const collectionNames = [];
+      for (const collectionId of collectionIds) {
+        const collection = await db.collectionsStore.getCollectionDataById(
+          collectionId,
+        );
+        if (collection?.metadata?.owner === userId) {
+          collectionNames.push(collection.data.name);
+        }
+      }
 
       const itemData = {
         metadata: {
-          owner: request.auth.credentials._id.toString(),
+          owner: userId,
           time: {
             created: new Date().toISOString(),
             edited: "",
@@ -162,7 +196,9 @@ export const actionsController = {
         data: {
           name,
           description: description ?? "",
-          collections: splitCommaList(collections),
+          collections: collectionNames.length
+            ? collectionNames
+            : splitCommaList(collections),
           categories: splitCommaList(categories),
           price: {
             currency: currency?.trim() ? currency.trim().slice(0, 3) : "",
@@ -183,8 +219,126 @@ export const actionsController = {
         },
       };
 
-      await db.itemsStore.addItem(itemData);
+      const savedItem = await db.itemsStore.addItem(itemData);
+      if (collectionIds.length) {
+        await db.collectionsStore.addItemToCollections(
+          savedItem._id.toString(),
+          collectionIds,
+          userId,
+        );
+      }
       return h.redirect("/my-items");
+    },
+  },
+
+  createCollection: {
+    auth: "jwt",
+    validate: {
+      payload: createCollectionFormSchema,
+      failAction: async (request, h, err) => {
+        const userId = request.auth.credentials._id.toString();
+        const collections = await db.collectionsStore.getAllCollectionsForUserId(
+          userId,
+        );
+        const items = await db.itemsStore.getAllItemsForUserId(userId);
+        const viewData = {
+          title: "My Collections",
+          subtitle: "Group your items into collections",
+          isAuthenticated: request.auth.isAuthenticated,
+          userId,
+          userIsAdmin: await db.usersStore.userIsAdmin(userId),
+          collections,
+          items,
+          infoMessage: err.details[0].message,
+          infoClass: "has-text-danger",
+        };
+        return h
+          .view("./pages/my-collections", { title: "My Collections", viewData })
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const { name, privacy, item_ids } = request.payload;
+      await db.collectionsStore.addCollection({
+        owner: request.auth.credentials._id.toString(),
+        name,
+        privacy,
+        item_ids,
+      });
+      return h.redirect("/my-collections?info=created");
+    },
+  },
+
+  editCollection: {
+    auth: "jwt",
+    validate: {
+      payload: editCollectionFormSchema,
+      failAction: async (request, h, err) => {
+        const userId = request.auth.credentials._id.toString();
+        const collectionId = request.params.id;
+        const collection = await db.collectionsStore.getCollectionForUser(
+          collectionId,
+          userId,
+        );
+        const items = await db.itemsStore.getAllItemsForUserId(userId);
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          userId,
+          userIsAdmin: await db.usersStore.userIsAdmin(userId),
+          title: collection?.name ?? "Collection",
+          collection,
+          items,
+          editMode: true,
+          infoMessage: err.details[0].message,
+          infoClass: "has-text-danger",
+        };
+        return h
+          .view("./pages/collection", {
+            title: collection?.name ?? "Collection",
+            viewData,
+          })
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const collectionId = request.params.id;
+      const userId = request.auth.credentials._id.toString();
+      const { name, privacy, item_ids } = request.payload;
+
+      const updated = await db.collectionsStore.editCollection(
+        collectionId,
+        userId,
+        { name, privacy, item_ids },
+      );
+
+      if (!updated) {
+        return h.redirect("/my-collections");
+      }
+
+      return h.redirect(`/collections/${collectionId}?info=updated`);
+    },
+  },
+
+  deleteCollection: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const collectionId = request.params.id;
+      const userId = request.auth.credentials._id.toString();
+      await db.collectionsStore.deleteCollectionById(collectionId, userId);
+      return h.redirect("/my-collections?info=deleted");
+    },
+  },
+
+  deleteItem: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const itemId = request.params.id;
+      const userId = request.auth.credentials._id.toString();
+      const deleted = await db.itemsStore.deleteItemById(itemId, userId);
+      if (deleted) {
+        await db.collectionsStore.removeItemFromAllCollections(itemId, userId);
+      }
+      return h.redirect("/my-items?info=deleted");
     },
   },
 

@@ -1,0 +1,71 @@
+<form
+  class="box mb-5"
+  action="/collections/{{viewData.collection._id}}/edit"
+  method="POST"
+  name="edit-collection-form"
+  autocomplete="on"
+>
+  <h2 class="title is-5 mb-2">Edit collection</h2>
+
+  {{#if viewData.infoMessage}}
+    <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+  {{/if}}
+
+  <div class="field">
+    <label class="label" for="edit-collection-name">Name</label>
+    <div class="control">
+      <input
+        id="edit-collection-name"
+        class="input"
+        type="text"
+        name="name"
+        value="{{viewData.collection.name}}"
+        required
+        minlength="2"
+        maxlength="100"
+      />
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="edit-collection-privacy">Privacy</label>
+    <div class="control">
+      <div class="select is-fullwidth">
+        <select id="edit-collection-privacy" name="privacy">
+          <option value="private" {{#if (eq viewData.collection.privacy "private")}}selected{{/if}}>Private</option>
+          <option value="shared" {{#if (eq viewData.collection.privacy "shared")}}selected{{/if}}>Shared</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {{#if viewData.items.length}}
+    <fieldset class="mb-4">
+      <legend class="label mb-3">Items in this collection</legend>
+      <div class="collection-item-checkboxes">
+        {{#each viewData.items}}
+          <label class="checkbox collection-item-checkboxes__label">
+            <input
+              type="checkbox"
+              name="item_ids"
+              value="{{this._id}}"
+              {{#if (contains ../viewData.collection.data.items this._id)}}checked{{/if}}
+            />
+            {{this.data.name}}
+          </label>
+        {{/each}}
+      </div>
+    </fieldset>
+  {{else}}
+    <p class="help mb-4">You have no items yet. Create items on <a href="/my-items">My items</a> first.</p>
+  {{/if}}
+
+  <div class="field is-grouped">
+    <div class="control">
+      <button class="button is-primary" type="submit">Save changes</button>
+    </div>
+    <div class="control">
+      <a class="button is-light" href="/collections/{{viewData.collection._id}}">Cancel</a>
+    </div>
+  </div>
+</form>

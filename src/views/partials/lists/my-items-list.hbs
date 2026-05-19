@@ -7,6 +7,7 @@
             <th>Description</th>
             <th>Price</th>
             <th>Categories</th>
+            <th>My Comments</th>
             <th>My Rating</th>
             <th>Actions</th>
         </tr>
@@ -21,10 +22,11 @@
               {{/with}}
             </td>
             <td>{{#each this.data.categories}}{{#unless @first}}, {{/unless}}{{this}}{{/each}}</td>
+            <td>{{this.data.comments.owner}}</td>
             <td>{{this.data.rating.owner}}</td>
             <td class="is-flex">
-            <a href="/items?item-id={{this._id}}" class="button list-button">{{>svg/point }}</a>
-            <a href="/items?item-id={{this._id}}" class="button list-button">{{>svg/delete }}</a>
+            <a href="/items/{{this._id}}" class="button list-button" title="View item">{{>svg/point }}</a>
+            <a href="/items/{{this._id}}/delete" class="button list-button" title="Delete item">{{>svg/delete }}</a>
             </td>
         </tr>
     {{/each}}

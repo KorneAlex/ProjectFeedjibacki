@@ -104,6 +104,9 @@ export const createItemFormSchema = Joi.object({
   description: Joi.string().max(500).allow("").optional(),
   categories: Joi.string().allow("").optional(),
   collections: Joi.string().allow("").optional(),
+  collection_ids: Joi.alternatives()
+    .try(Joi.string(), Joi.array().items(Joi.string()))
+    .optional(),
   currency: Joi.string().max(3).allow("").uppercase().optional(),
   paid_value: optionalPriceScalar,
   normal_price_value: optionalPriceScalar,
@@ -117,7 +120,7 @@ export const createItemFormSchema = Joi.object({
   comments_owner: Joi.string().max(500).allow("").optional(),
   shop: Joi.string().max(200).allow("").optional(),
   img_cover: Joi.string().max(2048).allow("").optional(),
-  access: Joi.string().valid("shared", "private").optional(),
+  access: Joi.string().valid("private", "public", "shared").optional(),
 });
 
 export const pointUpdateSchema = Joi.object({
@@ -187,11 +190,47 @@ const itemDataSchema = Joi.object({
 const itemMetadataSchema = Joi.object({
   time: itemTimeSchema.optional(),
   owner: Joi.string().required(),
-  access: Joi.string().valid("shared", "private").required(),
+  access: Joi.string().valid("private", "public", "shared").required(),
 });
 
 export const itemSchema = Joi.object({
   _id: Joi.any().optional(),
   metadata: itemMetadataSchema.required(),
   data: itemDataSchema.required(),
+}).unknown(true);
+
+const collectionItemIdsField = Joi.alternatives()
+  .try(Joi.string(), Joi.array().items(Joi.string()))
+  .optional();
+
+/** POST `/collections/create` and `collectionsStore.addCollection` input. */
+export const createCollectionFormSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  privacy: Joi.string().valid("private", "shared").optional(),
+  item_ids: collectionItemIdsField,
+  owner: Joi.string().optional(),
+});
+
+/** POST `/collections/{id}/edit` and `collectionsStore.editCollection` updates. */
+export const editCollectionFormSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  privacy: Joi.string().valid("private", "shared").optional(),
+  item_ids: collectionItemIdsField,
+});
+
+const collectionDataSchema = Joi.object({
+  name: Joi.string().min(2).max(100).required(),
+  privacy: Joi.string().valid("private", "shared").required(),
+  items: Joi.array().items(Joi.string()).optional(),
+});
+
+const collectionMetadataSchema = Joi.object({
+  owner: Joi.string().required(),
+  time: itemTimeSchema.optional(),
+});
+
+/** Full MongoDB collection document shape (metadata + data). */
+export const collectionSchema = Joi.object({
+  metadata: collectionMetadataSchema.required(),
+  data: collectionDataSchema.required(),
 }).unknown(true);

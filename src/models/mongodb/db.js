@@ -1,14 +1,43 @@
+import dns from "node:dns";
 import mongoose from "mongoose";
 
+/** Uses `MONGO_DNS_SERVERS` or public DNS when the URL is `mongodb+srv://`. */
+function configureMongoDns() {
+  const configured = process.env.MONGO_DNS_SERVERS?.split(",")
+    .map((server) => server.trim())
+    .filter(Boolean);
+
+  if (configured?.length) {
+    dns.setServers(configured);
+    return;
+  }
+
+  if (process.env.MONGO_URL?.startsWith("mongodb+srv://")) {
+    dns.setServers(["1.1.1.1", "8.8.8.8"]);
+  }
+}
+
+/** Logs connection failures; hints at DNS fixes for SRV `EREFUSED` errors. */
+function logConnectionError(err) {
+  console.error("MongoDB connection failed:", err.message);
+  if (err.message.includes("querySrv EREFUSED")) {
+    console.error(
+      "DNS SRV lookup was refused by your resolver. For mongodb+srv URLs, set public DNS in .env, e.g. MONGO_DNS_SERVERS=1.1.1.1,8.8.8.8, or use a standard mongodb:// connection string from Atlas.",
+    );
+  }
+}
+
+/** Attempts a single Mongoose connection using `process.env.MONGO_URL`. */
 export async function connect() {
   try {
+    configureMongoDns();
     await mongoose.connect(process.env.MONGO_URL, {
       serverSelectionTimeoutMS: 5000,
     });
     console.log("MongoDB connected");
     return true;
   } catch (err) {
-    console.error("MongoDB connection failed:", err.message);
+    logConnectionError(err);
     return false;
   }
 }
@@ -50,7 +79,7 @@ const itemSchema = new mongoose.Schema({
     },
     access: {
       type: String,
-      enum: ["shared", "private"],
+      enum: ["private", "public", "shared"],
       default: "private",
     },
   },
@@ -87,9 +116,30 @@ const itemSchema = new mongoose.Schema({
   },
 });
 
+const collectionSchema = new mongoose.Schema({
+  metadata: {
+    owner: { type: String, required: true },
+    time: {
+      created: { type: String, default: "" },
+      edited: { type: String, default: "" },
+      deleted: { type: String, default: "" },
+    },
+  },
+  data: {
+    name: { type: String, required: true },
+    privacy: {
+      type: String,
+      enum: ["private", "shared"],
+      default: "private",
+    },
+    items: { type: [String], default: [] },
+  },
+});
+
 // TODO: Categories
 // TODO: Fix pointSchema
 
 export const User = mongoose.model("User", userSchema);
 export const Point = mongoose.model("Point", pointSchema);
 export const Item = mongoose.model("Item", itemSchema);
+export const Collection = mongoose.model("Collection", collectionSchema);

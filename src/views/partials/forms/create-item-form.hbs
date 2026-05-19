@@ -66,17 +66,42 @@
     </div>
     <div class="column is-half-tablet">
       <div class="field">
-        <label class="label" for="item-collections">Collections</label>
-        <div class="control">
-          <input
-            id="item-collections"
-            class="input"
-            type="text"
-            name="collections"
-            placeholder="ok food, lidl (comma-separated)"
-            maxlength="400"
-          />
+        <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap gap-2 mb-2">
+          <label class="label mb-0">Collections</label>
+          <div class="buttons are-small mb-0">
+            <a
+              class="button is-link is-light"
+              href="/my-collections#create-collection-form"
+              target="_blank"
+              rel="noopener noreferrer"
+            >New collection</a>
+            <button
+              type="button"
+              class="button is-link is-light"
+              id="reload-collections-btn"
+            >Reload list</button>
+          </div>
         </div>
+        <div id="item-collections-mount">
+        {{#if viewData.collections.length}}
+        <div
+          id="item-collections-list"
+          class="collection-item-checkboxes"
+        >
+          {{#each viewData.collections}}
+            <label class="checkbox collection-item-checkboxes__label">
+              <input type="checkbox" name="collection_ids" value="{{this._id}}" />
+              {{this.name}}
+            </label>
+          {{/each}}
+        </div>
+        {{else}}
+        <p id="item-collections-empty" class="help">No collections yet.
+          <a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a>
+          in a new tab, then click Reload list.</p>
+        {{/if}}
+        </div>
+        <p id="item-collections-status" class="help" aria-live="polite"></p>
       </div>
     </div>
   </div>
@@ -87,12 +112,12 @@
       <div class="select is-fullwidth">
         <select id="item-access" name="access">
           <option value="private" selected>Private</option>
+          <option value="public">Public</option>
           <option value="shared">Shared</option>
         </select>
       </div>
     </div>
-    <p class="help">Stored on
-      <code>metadata.access</code>.</p>
+    <p class="help">Private: only you. Public: any signed-in user. Shared: chosen users (coming later).</p>
   </div>
 
   <fieldset class="mb-4">
@@ -243,3 +268,84 @@
     </div>
   </div>
 </form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const mountEl = document.getElementById("item-collections-mount");
+    const statusEl = document.getElementById("item-collections-status");
+    const reloadBtn = document.getElementById("reload-collections-btn");
+    if (!mountEl || !reloadBtn) return;
+
+    const emptyMessageHtml =
+      '<p id="item-collections-empty" class="help">No collections yet. ' +
+      '<a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a> ' +
+      "in a new tab, then click Reload list.</p>";
+
+    function getSelectedIds() {
+      const listEl = mountEl.querySelector("#item-collections-list");
+      if (!listEl) return [];
+      return [...listEl.querySelectorAll('input[name="collection_ids"]:checked')]
+        .map(function (checkbox) { return checkbox.value; });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderCollections(collections, selectedIds) {
+      mountEl.innerHTML = "";
+      if (!collections.length) {
+        mountEl.innerHTML = emptyMessageHtml;
+        return;
+      }
+
+      const listEl = document.createElement("div");
+      listEl.id = "item-collections-list";
+      listEl.className = "collection-item-checkboxes";
+
+      for (const collection of collections) {
+        const label = document.createElement("label");
+        label.className = "checkbox collection-item-checkboxes__label";
+        const id = String(collection._id);
+        const checked = selectedIds.includes(id) ? " checked" : "";
+        label.innerHTML =
+          '<input type="checkbox" name="collection_ids" value="' +
+          escapeHtml(id) + '"' + checked + " /> " + escapeHtml(collection.name);
+        listEl.appendChild(label);
+      }
+
+      mountEl.appendChild(listEl);
+    }
+
+    async function reloadCollections() {
+      reloadBtn.classList.add("is-loading");
+      statusEl.textContent = "";
+      statusEl.className = "help";
+      const selected = getSelectedIds();
+
+      try {
+        const response = await fetch("/api/collections/mine", {
+          credentials: "same-origin",
+        });
+        if (!response.ok) {
+          throw new Error("Could not load collections");
+        }
+        const collections = await response.json();
+        renderCollections(collections, selected);
+        if (collections.length) {
+          statusEl.textContent = "Loaded " + collections.length + " collection(s).";
+          statusEl.className = "help has-text-success";
+        }
+      } catch (err) {
+        statusEl.textContent = "Failed to reload collections.";
+        statusEl.className = "help has-text-danger";
+      } finally {
+        reloadBtn.classList.remove("is-loading");
+      }
+    }
+
+    reloadBtn.addEventListener("click", reloadCollections);
+  });
+</script>

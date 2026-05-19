@@ -1,5 +1,6 @@
 import { db } from "../models/db.js";
 
+/** Hapi GET route handlers that render Handlebars pages. */
 export const mainController = {
   index: {
     auth: { mode: "try" },
@@ -211,28 +212,89 @@ export const mainController = {
     },
   },
 
+  /** Lists the user's collections and items (`/my-collections`). */
   myCollections: {
     auth: "jwt",
     handler: async (request, h) => {
-      const userId = request.auth?.credentials?._id;
+      const userId = request.auth?.credentials?._id.toString();
       const collections = await db.collectionsStore.getAllCollectionsForUserId(
-        userId.toString(),
+        userId,
       );
+      const items = await db.itemsStore.getAllItemsForUserId(userId);
       const viewData = {
         title: "My Collections",
-        subtitle: "Feedback grouped by product category",
+        subtitle: "Group your items into collections",
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
-        collectionsJson: JSON.stringify(collections),
-        collections: collections,
+        collections,
+        items,
       };
+      if (request.query.info === "created") {
+        viewData.infoMessage = "Collection created successfully.";
+        viewData.infoClass = "has-text-success";
+      }
+      if (request.query.info === "deleted") {
+        viewData.infoMessage = "Collection deleted.";
+        viewData.infoClass = "has-text-success";
+      }
       return h.view("./pages/my-collections", {
         title: "My Collections",
         viewData: viewData,
       });
     },
+  },
+
+  /** Single collection detail/edit page (`/collections/{id}`). */
+  collection: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id.toString();
+      const collectionId = request.params.id;
+      const viewDataBasic = {
+        isAuthenticated: request.auth.isAuthenticated,
+        userId,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+      };
+
+      const collection = await db.collectionsStore.getCollectionForUser(
+        collectionId,
+        userId,
+      );
+
+      if (!collection) {
+        return h.view("./pages/collection", {
+          title: "Collection",
+          viewData: {
+            ...viewDataBasic,
+            title: "Collection",
+            message:
+              "This collection does not exist or you do not have access to it.",
+          },
+        });
+      }
+
+      const items = await db.itemsStore.getAllItemsForUserId(userId);
+      const viewData = {
+        ...viewDataBasic,
+        title: collection.name,
+        subtitle: `${collection.itemCount} item(s) · ${collection.privacy}`,
+        collection,
+        items,
+        editMode: request.query.edit === "1",
+      };
+
+      if (request.query.info === "updated") {
+        viewData.infoMessage = "Collection updated successfully.";
+        viewData.infoClass = "has-text-success";
+      }
+
+      return h.view("./pages/collection", {
+        title: collection.name,
+        viewData: viewData,
+      });
     },
+  },
 
   myCategories: {
     auth: "jwt",
@@ -257,12 +319,14 @@ export const mainController = {
     },
     },
 
+  /** Lists the user's items with collection pickers (`/my-items`). */
   myItems: {
     auth: "jwt",
     handler: async (request, h) => {
-      const userId = request.auth?.credentials?._id;
-      const items = await db.itemsStore.getAllItemsForUserId(
-        userId.toString(),
+      const userId = request.auth?.credentials?._id.toString();
+      const items = await db.itemsStore.getAllItemsForUserId(userId);
+      const collections = await db.collectionsStore.getAllCollectionsForUserId(
+        userId,
       );
       const viewData = {
         title: "My Items",
@@ -270,13 +334,69 @@ export const mainController = {
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
-        itemsJson: JSON.stringify(items),
-        items: items
+        items,
+        collections,
       };
+      if (request.query.info === "deleted") {
+        viewData.infoMessage = "Item deleted.";
+        viewData.infoClass = "has-text-success";
+      }
       return h.view("./pages/my-items", {
         title: "My Items",
         viewData: viewData,
       });
     },
+  },
+
+  /** Single item detail/edit page (`/items/{id}`); respects `metadata.access`. */
+  item: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth?.credentials?._id.toString();
+      const itemId = request.params.id;
+      const viewDataBasic = {
+        isAuthenticated: request.auth.isAuthenticated,
+        userId,
+        userIsAdmin: await db.usersStore.userIsAdmin(userId),
+      };
+
+      const item = await db.itemsStore.getItemForViewer(itemId, userId);
+
+      if (!item) {
+        return h.view("./pages/item", {
+          title: "Item",
+          viewData: {
+            ...viewDataBasic,
+            title: "Item",
+            message:
+              "This item does not exist or you do not have access to it.",
+          },
+        });
+      }
+
+      const isOwner = item.metadata.owner === userId;
+      const collections = isOwner
+        ? await db.collectionsStore.getAllCollectionsForUserId(userId)
+        : [];
+      const viewData = {
+        ...viewDataBasic,
+        title: item.data.name,
+        subtitle: `Item · id: ${itemId}`,
+        item,
+        collections,
+        isOwner,
+        editMode: isOwner && request.query.edit === "1",
+      };
+
+      if (request.query.info === "updated") {
+        viewData.infoMessage = "Item updated successfully.";
+        viewData.infoClass = "has-text-success";
+      }
+
+      return h.view("./pages/item", {
+        title: item.data.name,
+        viewData,
+      });
     },
+  },
 };

@@ -1,0 +1,49 @@
+<div class="page-content">
+  <div class="container container--wide">
+    {{#if viewData.message}}
+      <div class="notification is-danger is-light">
+        <p>{{viewData.message}}</p>
+        <a class="button is-light mt-3" href="/my-collections">Back to My collections</a>
+      </div>
+    {{else}}
+      {{#if viewData.infoMessage}}
+        <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+      {{/if}}
+
+      {{#if viewData.editMode}}
+        {{> forms/edit-collection-form }}
+      {{else}}
+        <div class="box mb-5">
+          <div class="is-flex is-justify-content-space-between is-align-items-flex-start is-flex-wrap-wrap gap-2 mb-4">
+            <div>
+              <p class="has-text-grey is-size-7 mb-1">Privacy: {{viewData.collection.privacy}}</p>
+              <p class="has-text-grey is-size-7">Created: {{viewData.collection.metadata.time.created}}</p>
+              {{#if viewData.collection.metadata.time.edited}}
+                <p class="has-text-grey is-size-7">Last edited: {{viewData.collection.metadata.time.edited}}</p>
+              {{/if}}
+            </div>
+            <div class="buttons">
+              <a class="button is-primary is-light" href="/collections/{{viewData.collection._id}}?edit=1">Edit</a>
+              <a class="button is-danger is-light" href="/collections/{{viewData.collection._id}}/delete">Delete</a>
+            </div>
+          </div>
+
+          {{#if viewData.collection.items.length}}
+            <h2 class="title is-6 mb-3">Items ({{viewData.collection.itemCount}})</h2>
+            <ul class="collection-detail-items">
+              {{#each viewData.collection.items}}
+                <li>
+                  <a href="/items/{{this._id}}">{{this.name}}</a>
+                </li>
+              {{/each}}
+            </ul>
+          {{else}}
+            <p class="has-text-grey">This collection has no items yet.</p>
+          {{/if}}
+        </div>
+
+        <a class="button is-light" href="/my-collections">&larr; Back to My collections</a>
+      {{/if}}
+    {{/if}}
+  </div>
+</div>
