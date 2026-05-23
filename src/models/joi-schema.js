@@ -63,6 +63,13 @@ export const userUpdateSchema = Joi.object({
   })
   .label("UserUpdate");
 
+/** POST `/user/{uid}/edit` — admin edits username, email, and admin flag (no password). */
+export const adminUserEditFormSchema = Joi.object({
+  username: Joi.string().alphanum().min(2).max(20).required(),
+  email: Joi.string().email().required(),
+  isAdmin: Joi.string().valid("true").optional(),
+});
+
 /** MongoDB user document shape for API responses (allows _id, points, __v, isAdmin, etc.). Added by AI */
 export const userResponseSchema = userSchema.unknown(true).label("User");
 
@@ -120,6 +127,7 @@ export const createItemFormSchema = Joi.object({
   comments_owner: Joi.string().max(500).allow("").optional(),
   shop: Joi.string().max(200).allow("").optional(),
   img_cover: Joi.string().max(2048).allow("").optional(),
+  imagefile: Joi.any().optional(),
   access: Joi.string().valid("private", "public", "shared").optional(),
 });
 

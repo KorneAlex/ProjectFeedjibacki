@@ -5,6 +5,7 @@ import {
   createItemFormSchema,
   createCollectionFormSchema,
   editCollectionFormSchema,
+  adminUserEditFormSchema,
 } from "../models/joi-schema.js";
 import { cloudinary } from "../lib/cloudinary.js";
 
@@ -56,6 +57,107 @@ function normalizePriceSlot(partOrScalar) {
   }
   const n = typeof raw === "number" ? raw : Number.parseFloat(String(raw));
   return Number.isFinite(n) && n >= 0 ? { value: n } : { value: "" };
+}
+
+const imageUploadPayload = {
+  maxBytes: 5 * 1024 * 1024,
+  parse: true,
+  output: "file",
+  multipart: true,
+};
+
+async function uploadImage(file, folder, id, label) {
+  const uploaded = await cloudinary.uploader.upload(file.path, {
+    folder,
+    public_id: id,
+    overwrite: true,
+    resource_type: "image",
+    display_name: `${label}-${id}`,
+  });
+  await fs.unlink(file.path).catch(() => {});
+  return uploaded?.secure_url ?? null;
+}
+
+async function collectionNamesForIds(userId, collectionIds) {
+  const names = [];
+  for (const collectionId of collectionIds) {
+    const collection = await db.collectionsStore.getCollectionDataById(collectionId);
+    if (collection?.metadata?.owner === userId) {
+      names.push(collection.data.name);
+    }
+  }
+  return names;
+}
+
+function collectionIdsForItem(collections, itemId, names) {
+  return collections
+    .filter(
+      (collection) =>
+        collection.items?.some((entry) => entry._id === itemId) ||
+        names.includes(collection.name),
+    )
+    .map((collection) => collection._id);
+}
+
+async function buildItemDataFromPayload(payload, userId, existing) {
+  const {
+    name,
+    description,
+    categories,
+    collections,
+    collection_ids,
+    paid_value,
+    normal_price_value,
+    sale_price_value,
+    currency,
+    rating,
+    comments_owner,
+    shop,
+    img_cover,
+    access,
+  } = payload;
+
+  const ratingDoc = { others: existing?.data?.rating?.others ?? [] };
+  const ownerRating = parseRatingOwner(rating);
+  if (ownerRating !== undefined) {
+    ratingDoc.owner = ownerRating;
+  } else if (existing?.data?.rating?.owner !== undefined) {
+    ratingDoc.owner = existing.data.rating.owner;
+  }
+
+  const collectionIds = normalizeIdList(collection_ids);
+  const collectionNames = await collectionNamesForIds(userId, collectionIds);
+
+  return {
+    collectionIds,
+    access: normalizeItemAccess(access),
+    data: {
+      name,
+      description: description ?? "",
+      collections: collectionNames.length
+        ? collectionNames
+        : splitCommaList(collections),
+      categories: splitCommaList(categories),
+      price: {
+        currency: currency?.trim()
+          ? currency.trim().slice(0, 3)
+          : (existing?.data?.price?.currency ?? ""),
+        normal_price: normalizePriceSlot(normal_price_value),
+        sale_price: normalizePriceSlot(sale_price_value),
+        paid: normalizePriceSlot(paid_value),
+      },
+      rating: ratingDoc,
+      comments: {
+        owner: (comments_owner ?? "").trim(),
+        others: existing?.data?.comments?.others ?? [],
+      },
+      shop: (shop ?? "").trim(),
+      img: {
+        cover: existing ? (img_cover ?? "").trim() : "",
+        pictures: existing?.data?.img?.pictures ?? [],
+      },
+    },
+  };
 }
 
 /** Hapi route handlers for POST/GET form actions (items, collections, points, account). */
@@ -121,8 +223,10 @@ export const actionsController = {
     },
   },
 
+  // AI help 
   createItem: {
     auth: "jwt",
+    payload: imageUploadPayload,
     validate: {
       payload: createItemFormSchema,
       failAction: async (request, h, err) => {
@@ -141,6 +245,7 @@ export const actionsController = {
           collections,
           infoMessage: err.details[0].message,
           infoClass: "has-text-danger",
+          showCreateItemForm: true,
         };
         return h
           .view("./pages/my-items", { title: "My Items", viewData })
@@ -148,42 +253,10 @@ export const actionsController = {
       },
     },
     handler: async (request, h) => {
-      const {
-        name,
-        description,
-        categories,
-        collections,
-        collection_ids,
-        paid_value,
-        normal_price_value,
-        sale_price_value,
-        currency,
-        rating,
-        comments_owner,
-        shop,
-        img_cover,
-        access,
-      } = request.payload;
-
-      const ratingOwner = parseRatingOwner(rating);
-      const ratingDoc = { others: [] };
-      if (ratingOwner !== undefined) ratingDoc.owner = ratingOwner;
-
-      const accessNorm = normalizeItemAccess(access);
-
       const userId = request.auth.credentials._id.toString();
-      const collectionIds = normalizeIdList(collection_ids);
-      const collectionNames = [];
-      for (const collectionId of collectionIds) {
-        const collection = await db.collectionsStore.getCollectionDataById(
-          collectionId,
-        );
-        if (collection?.metadata?.owner === userId) {
-          collectionNames.push(collection.data.name);
-        }
-      }
+      const built = await buildItemDataFromPayload(request.payload, userId);
 
-      const itemData = {
+      const savedItem = await db.itemsStore.addItem({
         metadata: {
           owner: userId,
           time: {
@@ -191,42 +264,36 @@ export const actionsController = {
             edited: "",
             deleted: "",
           },
-          access: accessNorm,
+          access: built.access,
         },
         data: {
-          name,
-          description: description ?? "",
-          collections: collectionNames.length
-            ? collectionNames
-            : splitCommaList(collections),
-          categories: splitCommaList(categories),
-          price: {
-            currency: currency?.trim() ? currency.trim().slice(0, 3) : "",
-            normal_price: normalizePriceSlot(normal_price_value),
-            sale_price: normalizePriceSlot(sale_price_value),
-            paid: normalizePriceSlot(paid_value),
-          },
-          rating: ratingDoc,
-          comments: {
-            owner: (comments_owner ?? "").trim(),
-            others: [],
-          },
-          shop: (shop ?? "").trim(),
-          img: {
-            cover: (img_cover ?? "").trim(),
-            pictures: [],
-          },
+          ...built.data,
+          img: { cover: "", pictures: [] },
         },
-      };
+      });
 
-      const savedItem = await db.itemsStore.addItem(itemData);
-      if (collectionIds.length) {
+      const itemId = savedItem._id.toString();
+      if (built.collectionIds.length) {
         await db.collectionsStore.addItemToCollections(
-          savedItem._id.toString(),
-          collectionIds,
+          itemId,
+          built.collectionIds,
           userId,
         );
       }
+
+      const file = request.payload?.imagefile;
+      if (file?.path) {
+        try {
+          const url = await uploadImage(file, "feedjibacki/items", itemId, "item");
+          if (url) {
+            await db.itemsStore.updateItemCoverUrl(itemId, userId, url);
+          }
+        } catch (err) {
+          console.error(err);
+          await fs.unlink(file.path).catch(() => {});
+        }
+      }
+
       return h.redirect("/my-items");
     },
   },
@@ -251,6 +318,7 @@ export const actionsController = {
           items,
           infoMessage: err.details[0].message,
           infoClass: "has-text-danger",
+          showCreateCollectionForm: true,
         };
         return h
           .view("./pages/my-collections", { title: "My Collections", viewData })
@@ -329,6 +397,80 @@ export const actionsController = {
     },
   },
 
+  editItem: {
+    auth: "jwt",
+    validate: {
+      payload: createItemFormSchema,
+      failAction: async (request, h, err) => {
+        const userId = request.auth.credentials._id.toString();
+        const itemId = request.params.id;
+        const item = await db.itemsStore.getItemForUser(itemId, userId);
+        if (!item) {
+          return h.redirect("/my-items");
+        }
+        const collections =
+          await db.collectionsStore.getAllCollectionsForUserId(userId);
+        const itemCollectionNames = item.data?.collections ?? [];
+        const selectedCollectionIds = collectionIdsForItem(
+          collections,
+          itemId,
+          itemCollectionNames,
+        );
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          userId,
+          userIsAdmin: await db.usersStore.userIsAdmin(userId),
+          title: item.data.name,
+          subtitle: `Item · id: ${itemId}`,
+          item,
+          itemCategoriesCsv: (item.data?.categories ?? []).join(", "),
+          collections,
+          selectedCollectionIds,
+          isOwner: true,
+          editMode: true,
+          infoMessage: err.details[0].message,
+          infoClass: "has-text-danger",
+        };
+        return h
+          .view("./pages/item", { title: item.data.name, viewData })
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const itemId = request.params.id;
+      const userId = request.auth.credentials._id.toString();
+      const existing = await db.itemsStore.getItemForUser(itemId, userId);
+      if (!existing) {
+        return h.redirect("/my-items");
+      }
+
+      const built = await buildItemDataFromPayload(
+        request.payload,
+        userId,
+        existing,
+      );
+      const updated = await db.itemsStore.updateItemById(itemId, userId, {
+        metadata: { access: built.access },
+        data: built.data,
+      });
+
+      if (!updated) {
+        return h.redirect("/my-items");
+      }
+
+      await db.collectionsStore.removeItemFromAllCollections(itemId, userId);
+      if (built.collectionIds.length) {
+        await db.collectionsStore.addItemToCollections(
+          itemId,
+          built.collectionIds,
+          userId,
+        );
+      }
+
+      return h.redirect(`/items/${itemId}?info=updated`);
+    },
+  },
+
   deleteItem: {
     auth: "jwt",
     handler: async (request, h) => {
@@ -339,6 +481,29 @@ export const actionsController = {
         await db.collectionsStore.removeItemFromAllCollections(itemId, userId);
       }
       return h.redirect("/my-items?info=deleted");
+    },
+  },
+
+  editUser: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const isAdmin = await db.usersStore.userIsAdmin(
+        request.auth.credentials._id,
+      );
+      if (!isAdmin) {
+        return h.redirect("/");
+      }
+      const uid = request.params.uid;
+      const { error, value } = adminUserEditFormSchema.validate(request.payload);
+      if (error) {
+        return h.redirect(`/user?userid=${uid}&edit=1&error=validation`);
+      }
+      await db.usersStore.updateUserById(uid, {
+        username: value.username,
+        email: value.email,
+        isAdmin: value.isAdmin === "true",
+      });
+      return h.redirect(`/user?userid=${uid}&info=updated`);
     },
   },
 
@@ -368,49 +533,60 @@ export const actionsController = {
 
   // https://console.cloudinary.com/app/c-66b926e4a8b5144cfd27d31bc53a3b/image/getting-started
   uploadPointImage: {
-    auth: {
-      strategy: "jwt",
-    },
-    payload: {
-      maxBytes: 5 * 1024 * 1024,
-      parse: true,
-      output: "file",
-      multipart: true,
-    },
+    auth: "jwt",
+    payload: imageUploadPayload,
     handler: async (request, h) => {
       const pointId = request.query.id;
       const redirectBase = pointId ? `/point?id=${pointId}` : "/my-points";
-
       const file = request.payload?.imagefile; // AI help with getting file from payload
       if (!file?.path) {
-        return h.redirect(`${redirectBase}`);
+        return h.redirect(redirectBase);
       }
 
       try {
         // https://cloudinary.com/documentation/upload_images
-        const uploaded = await cloudinary.uploader.upload(file.path, {
-          folder: "feedjibacki/points",
-          public_id: pointId,
-          overwrite: true,
-          resource_type: "image",
-          display_name: `point-${pointId}`,
-        });
-        await fs.unlink(file.path).catch(() => {});
-
-        const url = uploaded?.secure_url;
-        if (!url) {
-          return h.redirect(`${redirectBase}`);
+        const url = await uploadImage(file, "feedjibacki/points", pointId, "point");
+        if (url) {
+          await db.pointsStore.updatePointImageUrl(pointId, url);
         }
-
-        await db.pointsStore.updatePointImageUrl(pointId, url);
-        return h.redirect(`${redirectBase}`);
       } catch (err) {
         console.error(err);
-        if (file?.path) {
-          await fs.unlink(file.path).catch(() => {});
-        }
-        return h.redirect(`${redirectBase}`);
+        await fs.unlink(file.path).catch(() => {});
       }
+      return h.redirect(redirectBase);
+    },
+  },
+
+  uploadItemImage: {
+    auth: "jwt",
+    payload: imageUploadPayload,
+    handler: async (request, h) => {
+      const itemId = request.query.id;
+      const userId = request.auth.credentials._id.toString();
+      const redirectBase = itemId
+        ? `/items/${itemId}?edit=1&info=image_uploaded`
+        : "/my-items";
+      const file = request.payload?.imagefile;
+      if (!file?.path) {
+        return h.redirect(redirectBase);
+      }
+
+      const existing = await db.itemsStore.getItemForUser(itemId, userId);
+      if (!existing) {
+        await fs.unlink(file.path).catch(() => {});
+        return h.redirect("/my-items");
+      }
+
+      try {
+        const url = await uploadImage(file, "feedjibacki/items", itemId, "item");
+        if (url) {
+          await db.itemsStore.updateItemCoverUrl(itemId, userId, url);
+        }
+      } catch (err) {
+        console.error(err);
+        await fs.unlink(file.path).catch(() => {});
+      }
+      return h.redirect(redirectBase);
     },
   },
 };

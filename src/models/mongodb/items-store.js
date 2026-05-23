@@ -95,6 +95,77 @@ export const itemsStore = {
     return await item.save();
   },
 
+  // Update   ==================================================================================================================================
+
+  /**
+   * Updates an owned item's `metadata` and `data` fields.
+   *
+   * @param {string} itemId
+   * @param {string} userId
+   * @param {object} updates `{ metadata, data }` partial document.
+   * @returns {object|null} Updated lean document, or null if not found / not owner.
+   */
+  updateItemById: async (itemId, userId, updates) => {
+    if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
+
+    const existing = await itemsStore.getItemForUser(itemId, userId);
+    if (!existing) return null;
+
+    const $set = { "metadata.time.edited": new Date().toISOString() };
+    if (updates.metadata?.access !== undefined) {
+      $set["metadata.access"] = updates.metadata.access;
+    }
+
+    const data = updates.data ?? {};
+    for (const key of [
+      "name",
+      "description",
+      "categories",
+      "collections",
+      "shop",
+      "comments",
+      "rating",
+      "price",
+    ]) {
+      if (data[key] !== undefined) {
+        $set[`data.${key}`] = data[key];
+      }
+    }
+    if (data.img !== undefined) {
+      $set["data.img.cover"] = data.img.cover ?? "";
+      if (data.img.pictures !== undefined) {
+        $set["data.img.pictures"] = data.img.pictures;
+      }
+    }
+
+    await Item.updateOne({ _id: itemId }, { $set });
+    return await itemsStore.getItemForUser(itemId, userId);
+  },
+
+  /**
+   * Sets `data.img.cover` for an owned item (e.g. after Cloudinary upload).
+   *
+   * @param {string} itemId
+   * @param {string} userId
+   * @param {string} coverUrl
+   * @returns {object|null} Updated lean document, or null if not found / not owner.
+   */
+  updateItemCoverUrl: async (itemId, userId, coverUrl) => {
+    if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
+    if (!(await itemsStore.getItemForUser(itemId, userId))) return null;
+
+    await Item.updateOne(
+      { _id: itemId },
+      {
+        $set: {
+          "data.img.cover": coverUrl,
+          "metadata.time.edited": new Date().toISOString(),
+        },
+      },
+    );
+    return await itemsStore.getItemForUser(itemId, userId);
+  },
+
   // Delete   ==================================================================================================================================
 
   /**

@@ -177,13 +177,33 @@ export const mainController = {
       if (!isAdmin) {
         return h.redirect("/");
       }
+      const userId = request.query.userid;
+      const userData = await db.usersStore.getUserDataById(userId);
+      const data = userData?.data ?? {};
       const viewData = {
         title: isAdmin ? "Admin " + request.auth.credentials.username: "User " + request.auth.credentials.username,
         isAuthenticated: request.auth.isAuthenticated,
         userIsAdmin: isAdmin,
         username: request.auth.credentials.username,
-        userData: await db.usersStore.getUserDataById(request.query.userid),
+        userId,
+        userData,
+        counts: {
+          points: data.points?.length ?? 0,
+          items: data.items?.length ?? 0,
+          collections: data.collections?.length ?? 0,
+          categories: (data.categories ?? []).filter((c) => String(c).trim()).length,
+        },
+        hasMapApiKey: Boolean(data.map_api_key?.trim()),
+        editMode: request.query.edit === "1",
       };
+      if (request.query.info === "updated") {
+        viewData.infoMessage = "User updated.";
+        viewData.infoClass = "has-text-success";
+      }
+      if (request.query.error === "validation") {
+        viewData.infoMessage = "Please check the form fields.";
+        viewData.infoClass = "has-text-danger";
+      }
       return h.view("./pages/user", { title: "Users", viewData: viewData });
     },
   },
@@ -300,31 +320,32 @@ export const mainController = {
     auth: "jwt",
     handler: async (request, h) => {
       const userId = request.auth?.credentials?._id;
-      const categories = await db.categoriesStore.getAllCategoriesForUserId(
-        userId.toString(),
-      );
       const viewData = {
         title: "My Categories",
-        subtitle: "Add categories to group your products",
+        subtitle: "In development",
         isAuthenticated: request.auth.isAuthenticated,
         userId,
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
-        categoriesJson: JSON.stringify(categories),
-        categories: categories,
       };
       return h.view("./pages/my-categories", {
         title: "My Categories",
         viewData: viewData,
       });
     },
-    },
+  },
 
   /** Lists the user's items with collection pickers (`/my-items`). */
   myItems: {
     auth: "jwt",
     handler: async (request, h) => {
       const userId = request.auth?.credentials?._id.toString();
-      const items = await db.itemsStore.getAllItemsForUserId(userId);
+      let items = await db.itemsStore.getAllItemsForUserId(userId);
+      const categoryFilter = request.query.category?.trim();
+      if (categoryFilter) {
+        items = items.filter((entry) =>
+          (entry.data?.categories ?? []).includes(categoryFilter),
+        );
+      }
       const collections = await db.collectionsStore.getAllCollectionsForUserId(
         userId,
       );
@@ -336,6 +357,7 @@ export const mainController = {
         userIsAdmin: await db.usersStore.userIsAdmin(userId),
         items,
         collections,
+        activeCategoryFilter: categoryFilter || null,
       };
       if (request.query.info === "deleted") {
         viewData.infoMessage = "Item deleted.";
@@ -378,18 +400,43 @@ export const mainController = {
       const collections = isOwner
         ? await db.collectionsStore.getAllCollectionsForUserId(userId)
         : [];
+      const itemCollectionNames = item.data?.collections ?? [];
+      const itemCollectionLinks = itemCollectionNames.map((name) => {
+        const collection = isOwner
+          ? collections.find((entry) => entry.name === name)
+          : null;
+        return { name, id: collection?._id ?? null };
+      });
+      const itemCategoryLinks = (item.data?.categories ?? []).map((name) => ({
+        name,
+        href: isOwner ? `/my-items?category=${encodeURIComponent(name)}` : null,
+      }));
+      const selectedCollectionIds = collections
+        .filter(
+          (collection) =>
+            collection.items?.some((entry) => entry._id === itemId) ||
+            itemCollectionNames.includes(collection.name),
+        )
+        .map((collection) => collection._id);
       const viewData = {
         ...viewDataBasic,
         title: item.data.name,
         subtitle: `Item · id: ${itemId}`,
         item,
+        itemCategoriesCsv: (item.data?.categories ?? []).join(", "),
+        itemCollectionLinks,
+        itemCategoryLinks,
         collections,
+        selectedCollectionIds,
         isOwner,
         editMode: isOwner && request.query.edit === "1",
       };
 
       if (request.query.info === "updated") {
         viewData.infoMessage = "Item updated successfully.";
+        viewData.infoClass = "has-text-success";
+      } else if (request.query.info === "image_uploaded") {
+        viewData.infoMessage = "Cover image uploaded successfully.";
         viewData.infoClass = "has-text-success";
       }
 

@@ -1,69 +1,58 @@
-<div
-  id="create-item-panel"
-  class="create-item-panel mb-5"
-  {{#unless viewData.showCreateItemForm}}style="display: none;"{{/unless}}
->
-<form
-  class="box mb-0"
-  action="/items/create-item"
-  method="POST"
-  enctype="multipart/form-data"
-  name="create-item-form"
-  autocomplete="on"
->
-  <h2 class="title is-5 mb-2">Add an item</h2>
-  <p class="subtitle is-6 has-text-grey mb-4">Fields map to
-    <code>data</code>
-    and
-    <code>metadata</code>
-    on the item document (price slots use a numeric value or leave blank for an empty string).</p>
+<div class="box mb-5">
+  <h2 class="title is-5 mb-2">Edit item</h2>
 
   {{#if viewData.infoMessage}}
     <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
   {{/if}}
 
+  <form
+    id="edit-item-form"
+    action="/items/{{viewData.item._id}}/edit"
+    method="POST"
+    name="edit-item-form"
+    autocomplete="on"
+  >
+
   <div class="field">
-    <label class="label" for="item-name">Name</label>
+    <label class="label" for="edit-item-name">Name</label>
     <div class="control">
       <input
-        id="item-name"
+        id="edit-item-name"
         class="input"
         type="text"
         name="name"
-        placeholder="Item or product name"
+        value="{{viewData.item.data.name}}"
         required
         minlength="2"
         maxlength="100"
       />
     </div>
-    <p class="help">2–100 characters.</p>
   </div>
 
   <div class="field">
-    <label class="label" for="item-description">Description</label>
+    <label class="label" for="edit-item-description">Description</label>
     <div class="control">
       <textarea
-        id="item-description"
+        id="edit-item-description"
         class="textarea"
         name="description"
-        placeholder="Notes, quality, where you bought it, etc."
         rows="3"
         maxlength="500"
-      ></textarea>
+      >{{viewData.item.data.description}}</textarea>
     </div>
-    <p class="help">Optional, up to 500 characters.</p>
   </div>
 
   <div class="columns is-multiline">
     <div class="column is-half-tablet">
       <div class="field">
-        <label class="label" for="item-categories">Categories</label>
+        <label class="label" for="edit-item-categories">Categories</label>
         <div class="control">
           <input
-            id="item-categories"
+            id="edit-item-categories"
             class="input"
             type="text"
             name="categories"
+            value="{{viewData.itemCategoriesCsv}}"
             placeholder="frozen food, pre-cooked (comma-separated)"
             maxlength="400"
           />
@@ -84,46 +73,50 @@
             <button
               type="button"
               class="button is-link is-light"
-              id="reload-collections-btn"
+              id="edit-reload-collections-btn"
             >Reload list</button>
           </div>
         </div>
-        <div id="item-collections-mount">
+        <div id="edit-item-collections-mount">
         {{#if viewData.collections.length}}
         <div
-          id="item-collections-list"
+          id="edit-item-collections-list"
           class="collection-item-checkboxes"
         >
           {{#each viewData.collections}}
             <label class="checkbox collection-item-checkboxes__label">
-              <input type="checkbox" name="collection_ids" value="{{this._id}}" />
+              <input
+                type="checkbox"
+                name="collection_ids"
+                value="{{this._id}}"
+                {{#if (contains ../viewData.selectedCollectionIds this._id)}}checked{{/if}}
+              />
               {{this.name}}
             </label>
           {{/each}}
         </div>
         {{else}}
-        <p id="item-collections-empty" class="help">No collections yet.
+        <p id="edit-item-collections-empty" class="help">No collections yet.
           <a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a>
           in a new tab, then click Reload list.</p>
         {{/if}}
         </div>
-        <p id="item-collections-status" class="help" aria-live="polite"></p>
+        <p id="edit-item-collections-status" class="help" aria-live="polite"></p>
       </div>
     </div>
   </div>
 
   <div class="field">
-    <label class="label" for="item-access">Access</label>
+    <label class="label" for="edit-item-access">Access</label>
     <div class="control">
       <div class="select is-fullwidth">
-        <select id="item-access" name="access">
-          <option value="private" selected>Private</option>
-          <option value="public">Public</option>
-          <option value="shared">Shared</option>
+        <select id="edit-item-access" name="access">
+          <option value="private" {{#if (eq viewData.item.metadata.access "private")}}selected{{/if}}>Private</option>
+          <option value="public" {{#if (eq viewData.item.metadata.access "public")}}selected{{/if}}>Public</option>
+          <option value="shared" {{#if (eq viewData.item.metadata.access "shared")}}selected{{/if}}>Shared</option>
         </select>
       </div>
     </div>
-    <p class="help">Private: only you. Public: any signed-in user. Shared: chosen users (coming later).</p>
   </div>
 
   <fieldset class="mb-4">
@@ -131,81 +124,79 @@
     <div class="columns is-multiline">
       <div class="column is-half-tablet">
         <div class="field">
-          <label class="label" for="item-shop">Shop</label>
+          <label class="label" for="edit-item-shop">Shop</label>
           <div class="control">
             <input
-              id="item-shop"
+              id="edit-item-shop"
               class="input"
               type="text"
               name="shop"
+              value="{{viewData.item.data.shop}}"
               maxlength="200"
-              placeholder="Shop id or retailer name"
             />
           </div>
         </div>
       </div>
       <div class="column is-half-tablet">
         <div class="field">
-          <label class="label is-size-7" for="price-currency">Currency (ISO)</label>
+          <label class="label is-size-7" for="edit-price-currency">Currency (ISO)</label>
           <div class="control">
             <input
-              id="price-currency"
+              id="edit-price-currency"
               class="input"
               type="text"
               name="currency"
-              value="EUR"
+              value="{{viewData.item.data.price.currency}}"
               maxlength="3"
               autocapitalize="characters"
-              inputmode="text"
             />
           </div>
         </div>
       </div>
       <div class="column is-one-third-tablet">
         <div class="field">
-          <label class="label is-size-7" for="price-paid">Paid (
-            <code>data.price.paid.value</code>)</label>
+          <label class="label is-size-7" for="edit-price-paid">Paid</label>
           <div class="control">
             <input
-              id="price-paid"
+              id="edit-price-paid"
               class="input"
               type="number"
               name="paid_value"
+              value="{{viewData.item.data.price.paid.value}}"
               step="any"
               min="0"
-              placeholder="e.g. 12.99"
             />
           </div>
         </div>
       </div>
       <div class="column is-one-third-tablet">
         <div class="field">
-          <label class="label is-size-7" for="price-normal">Normal price</label>
+          <label class="label is-size-7" for="edit-price-normal">Normal price</label>
           <div class="control">
             <input
-              id="price-normal"
+              id="edit-price-normal"
               class="input"
               type="number"
               name="normal_price_value"
+              value="{{viewData.item.data.price.normal_price.value}}"
               step="any"
               min="0"
-              placeholder="e.g. 19.99"
             />
           </div>
         </div>
       </div>
       <div class="column is-one-third-tablet">
         <div class="field">
-          <label class="label is-size-7" for="price-sale">Sale price</label>
+          <label class="label is-size-7" for="edit-price-sale">Sale price</label>
           <div class="control">
             <input
-              id="price-sale"
+              id="edit-price-sale"
               class="input"
               type="number"
               name="sale_price_value"
+              value="{{viewData.item.data.price.sale_price.value}}"
               step="any"
               min="0"
-              placeholder="Leave blank if not on sale"
             />
           </div>
         </div>
@@ -216,97 +207,117 @@
   <div class="columns is-multiline">
     <div class="column is-two-thirds-tablet">
       <div class="field">
-        <label class="label" for="comments-owner">Your comment (
-          <code>data.comments.owner</code>)</label>
+        <label class="label" for="edit-comments-owner">Your comment</label>
         <div class="control">
           <textarea
-            id="comments-owner"
+            id="edit-comments-owner"
             class="textarea"
             name="comments_owner"
-            placeholder="Feedback stored as the owner comment"
             rows="2"
             maxlength="500"
-          ></textarea>
+          >{{viewData.item.data.comments.owner}}</textarea>
         </div>
       </div>
     </div>
     <div class="column is-one-third-tablet">
       <div class="field">
-        <label class="label" for="item-rating">Your rating (
-          <code>data.rating.owner</code>, 0–100)</label>
+        <label class="label" for="edit-item-rating">Your rating (0–100)</label>
         <div class="control">
           <input
-            id="item-rating"
+            id="edit-item-rating"
             class="input"
             type="number"
             name="rating"
+            value="{{viewData.item.data.rating.owner}}"
             min="0"
             max="100"
             step="1"
-            placeholder="optional"
           />
         </div>
       </div>
     </div>
   </div>
 
-  <div class="field">
-    <label class="label" for="item-imagefile">Cover image</label>
-    <div class="control">
-      <div id="file-select" class="file has-name is-fullwidth">
-        <label class="file-label">
-          <input
-            id="item-imagefile"
-            class="file-input"
-            name="imagefile"
-            type="file"
-            accept="image/png, image/jpeg"
-          >
-          <span class="file-cta">
-            <span class="file-icon">
-              <i class="fas fa-upload"></i>
-            </span>
-            <span class="file-label">Choose a file…</span>
-          </span>
-          <span class="file-name"></span>
-        </label>
+  <div class="mb-4 edit-item-cover">
+    <div class="field">
+      <label class="label" for="edit-item-img-cover">Image URL</label>
+      <div class="control">
+        <input
+          id="edit-item-img-cover"
+          class="input"
+          type="url"
+          name="img_cover"
+          value="{{viewData.item.data.img.cover}}"
+          maxlength="2048"
+          placeholder="https://…"
+        />
       </div>
+      <p class="help">Optional. Saved when you click Save changes.</p>
     </div>
-    <p class="help">Optional. PNG or JPEG, max 5 MB. Saved when you click Save item.</p>
+  </div>
+  </form>
+
+  <div class="field">
+    <label class="label" for="edit-item-imagefile">Upload picture</label>
+    <form
+      class="edit-item-cover__upload"
+      action="/items/uploadImage?id={{viewData.item._id}}"
+      method="POST"
+      enctype="multipart/form-data"
+    >
+      <div class="field is-grouped is-grouped-multiline mb-0">
+        <div class="control is-expanded">
+          <div id="file-select" class="file has-name is-fullwidth">
+            <label class="file-label">
+              <input
+                id="edit-item-imagefile"
+                class="file-input"
+                name="imagefile"
+                type="file"
+                accept="image/png, image/jpeg"
+              >
+              <span class="file-cta">
+                <span class="file-icon">
+                  <i class="fas fa-upload"></i>
+                </span>
+                <span class="file-label">Choose a file…</span>
+              </span>
+              <span class="file-name"></span>
+            </label>
+          </div>
+        </div>
+        <div class="control">
+          <button type="submit" class="button is-primary is-light">Upload</button>
+        </div>
+      </div>
+    </form>
+    <p class="help">PNG or JPEG, max 5 MB. Uploads immediately and sets the cover image.</p>
   </div>
 
-  <div class="field is-grouped">
+  <div class="field is-grouped mt-5">
     <div class="control">
-      <button class="button is-primary" type="submit">Save item</button>
+      <button class="button is-primary" type="submit" form="edit-item-form">Save changes</button>
+    </div>
+    <div class="control">
+      <a class="button is-light" href="/items/{{viewData.item._id}}">Cancel</a>
     </div>
   </div>
-</form>
 </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    const coverFileInput = document.getElementById("item-imagefile");
-    if (coverFileInput) {
-      coverFileInput.addEventListener("change", function () {
-        if (coverFileInput.files.length > 0) {
-          const fileName = coverFileInput.closest(".file")?.querySelector(".file-name");
-          if (fileName) fileName.textContent = coverFileInput.files[0].name;
-        }
-      });
-    }
-
-    const mountEl = document.getElementById("item-collections-mount");
-    const statusEl = document.getElementById("item-collections-status");
-    const reloadBtn = document.getElementById("reload-collections-btn");
+    const mountEl = document.getElementById("edit-item-collections-mount");
+    const statusEl = document.getElementById("edit-item-collections-status");
+    const reloadBtn = document.getElementById("edit-reload-collections-btn");
     if (!mountEl || !reloadBtn) return;
 
     const emptyMessageHtml =
-      '<p id="item-collections-empty" class="help">No collections yet. ' +
+      '<p id="edit-item-collections-empty" class="help">No collections yet. ' +
       '<a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a> ' +
       "in a new tab, then click Reload list.</p>";
 
     function getSelectedIds() {
-      const listEl = mountEl.querySelector("#item-collections-list");
+      const listEl = mountEl.querySelector("#edit-item-collections-list");
       if (!listEl) return [];
       return [...listEl.querySelectorAll('input[name="collection_ids"]:checked')]
         .map(function (checkbox) { return checkbox.value; });
@@ -326,7 +337,7 @@
       }
 
       const listEl = document.createElement("div");
-      listEl.id = "item-collections-list";
+      listEl.id = "edit-item-collections-list";
       listEl.className = "collection-item-checkboxes";
 
       for (const collection of collections) {
@@ -350,7 +361,7 @@
       const selected = getSelectedIds();
 
       try {
-        const response = await fetch("/api/collections/mine", {
+        const response = await fetch("/api/collections/getCollections", {
           credentials: "same-origin",
         });
         if (!response.ok) {
@@ -371,5 +382,15 @@
     }
 
     reloadBtn.addEventListener("click", reloadCollections);
+
+    const coverFileInput = document.getElementById("edit-item-imagefile");
+    if (coverFileInput) {
+      coverFileInput.addEventListener("change", function () {
+        if (coverFileInput.files.length > 0) {
+          const fileName = coverFileInput.closest(".file")?.querySelector(".file-name");
+          if (fileName) fileName.textContent = coverFileInput.files[0].name;
+        }
+      });
+    }
   });
 </script>

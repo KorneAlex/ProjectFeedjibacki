@@ -1,5 +1,6 @@
-{{!-- https://docs.maptiler.com/sdk-js/examples/popup-on-click/ --}}
-{{!-- https://docs.maptiler.com/sdk-js/examples/popup-on-hover/ --}}
+{{!-- Maps disabled in frontend templates
+https://docs.maptiler.com/sdk-js/examples/popup-on-click/
+https://docs.maptiler.com/sdk-js/examples/popup-on-hover/
 <script src="https://unpkg.com/deck.gl@9.2.5/dist.min.js"></script>
 <script src="https://cdn.maptiler.com/maptiler-sdk-js/v3.10.2/maptiler-sdk.umd.min.js"></script>
 <link href="https://cdn.maptiler.com/maptiler-sdk-js/v3.10.2/maptiler-sdk.css" rel="stylesheet" />
@@ -35,26 +36,22 @@ map.on('contextmenu', (e) => {
 
   
     const points = {{{viewData.pointsJson}}};
-    // console.log(points);
     let counter = 0;
     for (const point of points) {
         const coordinates = [point.pos["lon"], point.pos["lat"]]
-    // create the popup
-        //console.log(point.data.description);
     const popup = new maptilersdk.Popup({ offset: 25 }).setHTML(
         `<strong class="is-size-5"><a href="/point?id=${point._id.toString()}">${point.data.name}</a></strong><p>${point.data.description}</p>`
     );
 
 
-    // create DOM element for the marker
     const el = document.createElement('div');
     el.id = 'marker' + counter;
     el.classList.add('marker');
-    // create the marker
     new maptilersdk.Marker({element: el})
         .setLngLat(coordinates)
-        .setPopup(popup) // sets a popup on this marker
+        .setPopup(popup)
         .addTo(map);
     counter++;
     }
 </script>
+--}}

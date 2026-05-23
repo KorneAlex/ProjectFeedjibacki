@@ -44,13 +44,38 @@ export async function connect() {
 // TODO: make the app to load if there is no connection to DB displaying the error message on the page
 
 const userSchema = new mongoose.Schema({
-  username: { type: String, required: true },
-  email: { type: String, required: true },
-  password: { type: String, required: true },
-  map_api_key: { type: String, required: false },
-  points: { type: Array, required: false },
-  isAdmin: { type: Boolean, default: false },
+  metadata: {
+    time: {
+      created: { type: String, default: "" },
+      edited: { type: String, default: "" },
+      deleted: { type: String, default: "" },
+      admin_status_since: { type: String, default: "" },
+    },
+    username: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, required: true },
+    isAdmin: { type: Boolean, default: false },
+  },
+  data: {
+    points: { type: [String], default: [] },
+    items: { type: [String], default: [] },
+    collections: { type: [String], default: [] },
+    categories: { type: [String], default: [] },
+    map_api_key: { type: String, default: "" },
+  },
 });
+
+userSchema.virtual("username").get(function () {
+  return this.metadata?.username;
+});
+userSchema.virtual("isAdmin").get(function () {
+  return !!this.metadata?.isAdmin;
+});
+userSchema.virtual("map_api_key").get(function () {
+  return this.data?.map_api_key ?? "";
+});
+userSchema.set("toJSON", { virtuals: true });
+userSchema.set("toObject", { virtuals: true });
 
 const pointSchema = new mongoose.Schema({
   owner: { type: String, required: true },

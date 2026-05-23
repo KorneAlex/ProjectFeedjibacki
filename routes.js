@@ -15,6 +15,7 @@ export const routes = [
     { method: 'GET', path: '/point', config: mainController.point },
     { method: 'GET', path: '/users', config: mainController.users },
     { method: 'GET', path: '/user/{uid}/delete', config: actionsController.deleteUser },
+    { method: 'POST', path: '/user/{uid}/edit', config: actionsController.editUser },
     { method: 'GET', path: '/user', config: mainController.user },
     { method: 'GET', path: '/my-points', config: mainController.myPoints },
     { method: 'GET', path: '/my-collections', config: mainController.myCollections },
@@ -36,6 +37,7 @@ export const routes = [
     { method: 'POST', path: '/addApiToAccount', config: actionsController.addApiKey },
     { method: 'POST', path: '/map/add-point/submit', config: actionsController.addPoint },
     { method: 'POST', path: '/items/create-item', config: actionsController.createItem },
+    { method: 'POST', path: '/items/{id}/edit', config: actionsController.editItem },
     { method: 'GET', path: '/items/{id}/delete', config: actionsController.deleteItem },
     { method: 'POST', path: '/collections/create', config: actionsController.createCollection },
     { method: 'POST', path: '/collections/{id}/edit', config: actionsController.editCollection },
@@ -43,6 +45,7 @@ export const routes = [
 
     // points
     { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },
+    { method: 'POST', path: '/items/uploadImage', config: actionsController.uploadItemImage },
 
     // test
     { method: 'GET', path: '/test', config: testController.test },

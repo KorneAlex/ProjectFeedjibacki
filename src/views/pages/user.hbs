@@ -1,76 +1,153 @@
-<div style="text-align: center; margin-bottom: 2rem;">
-  <div class="title is-2 pt-5 mb-0"><span>User {{ viewData.userData.username }}</span></div> 
-    <p>{{ viewData.userData._id }}</p>
+<div class="page-content">
+  <div class="container container--wide">
+    {{#unless viewData.userData}}
+      <div class="notification is-warning is-light">
+        <p class="mb-3">User not found.</p>
+        <a class="button is-light" href="/users">Back to users</a>
+      </div>
+    {{else}}
+      {{#if viewData.editMode}}
+        {{> forms/edit-user-form }}
+      {{else}}
+        <div class="is-flex is-justify-content-space-between is-align-items-flex-start is-flex-wrap-wrap gap-3 mb-5">
+          <div>
+            <p class="has-text-grey is-size-7 mb-2">
+              <a href="/users" class="has-text-primary">← Users</a>
+            </p>
+            <h1 class="title is-3 mb-2">{{viewData.userData.metadata.username}}</h1>
+            <p class="has-text-grey is-size-7 mb-2">
+              <span class="has-text-weight-semibold">User ID:</span>
+              <code class="is-size-7">{{viewData.userId}}</code>
+            </p>
+            {{#if viewData.userData.metadata.isAdmin}}
+              <span class="tag is-primary is-light">Administrator</span>
+            {{else}}
+              <span class="tag is-light">Standard account</span>
+            {{/if}}
+            {{#if viewData.userData.__v}}
+              <span class="tag is-info is-light ml-1">v{{viewData.userData.__v}}</span>
+            {{/if}}
+          </div>
+          <div class="buttons">
+            <a class="button is-primary is-light" href="/user?userid={{viewData.userId}}&edit=1">Edit</a>
+            <a class="button is-danger is-light" href="/user/{{viewData.userId}}/delete">Delete</a>
+          </div>
+        </div>
+
+        {{#if viewData.infoMessage}}
+          <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+        {{/if}}
+
+        <h2 class="title is-5 mb-4">Overview</h2>
+        <div class="collections-grid mb-5">
+          <article class="collection-tile">
+            <h3 class="collection-tile__title">Feedback points</h3>
+            <p class="collection-tile__meta">{{viewData.counts.points}} point(s)</p>
+          </article>
+          <article class="collection-tile">
+            <h3 class="collection-tile__title">Items</h3>
+            <p class="collection-tile__meta">{{viewData.counts.items}} item(s)</p>
+          </article>
+          <article class="collection-tile">
+            <h3 class="collection-tile__title">Collections</h3>
+            <p class="collection-tile__meta">{{viewData.counts.collections}} collection(s)</p>
+          </article>
+          <article class="collection-tile">
+            <h3 class="collection-tile__title">Categories</h3>
+            <p class="collection-tile__meta">{{viewData.counts.categories}} categor{{#if (eq viewData.counts.categories 1)}}y{{else}}ies{{/if}}</p>
+          </article>
+        </div>
+
+        <div class="columns is-multiline">
+          <div class="column is-half-desktop">
+            <div class="box mb-5">
+              <h2 class="title is-5 mb-4">Profile</h2>
+              <table class="table is-fullwidth is-striped is-size-7">
+                <tbody>
+                  <tr>
+                    <th class="has-text-grey" style="width: 38%;">Username</th>
+                    <td><span class="has-text-weight-semibold">{{viewData.userData.metadata.username}}</span></td>
+                  </tr>
+                  <tr>
+                    <th class="has-text-grey">Email</th>
+                    <td><a href="mailto:{{viewData.userData.metadata.email}}">{{viewData.userData.metadata.email}}</a></td>
+                  </tr>
+                  <tr>
+                    <th class="has-text-grey">Admin</th>
+                    <td>
+                      {{#if viewData.userData.metadata.isAdmin}}
+                        <span class="tag is-success is-light">Yes</span>
+                      {{else}}
+                        <span class="tag is-light">No</span>
+                      {{/if}}
+                    </td>
+                  </tr>
+                  {{!-- <tr>
+                    <th class="has-text-grey">Map API key</th>
+                    <td>
+                      {{#if viewData.hasMapApiKey}}
+                        <span class="tag is-success is-light">Configured</span>
+                      {{else}}
+                        <span class="has-text-grey">Not set</span>
+                      {{/if}}
+                    </td>
+                  </tr> --}}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="column is-half-desktop">
+            <div class="box mb-5">
+              <h2 class="title is-5 mb-4">Account timeline</h2>
+              <table class="table is-fullwidth is-striped is-size-7">
+                <tbody>
+                  <tr>
+                    <th class="has-text-grey" style="width: 38%;">Created</th>
+                    <td>
+                      {{#if viewData.userData.metadata.time.created}}
+                        {{viewData.userData.metadata.time.created}}
+                      {{else}}
+                        <span class="has-text-grey">—</span>
+                      {{/if}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="has-text-grey">Last edited</th>
+                    <td>
+                      {{#if viewData.userData.metadata.time.edited}}
+                        {{viewData.userData.metadata.time.edited}}
+                      {{else}}
+                        <span class="has-text-grey">—</span>
+                      {{/if}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="has-text-grey">Deleted</th>
+                    <td>
+                      {{#if viewData.userData.metadata.time.deleted}}
+                        {{viewData.userData.metadata.time.deleted}}
+                      {{else}}
+                        <span class="has-text-grey">—</span>
+                      {{/if}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th class="has-text-grey">Admin since</th>
+                    <td>
+                      {{#if viewData.userData.metadata.time.admin_status_since}}
+                        {{viewData.userData.metadata.time.admin_status_since}}
+                      {{else}}
+                        <span class="has-text-grey">—</span>
+                      {{/if}}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      {{/if}}
+    {{/unless}}
+  </div>
 </div>
-
-{{!-- TODO: rename this styles --}}
-<style>
-    .point__summary--element {
-        width: 500px; 
-        {{!-- border-style: solid; --}}
-        border-radius: 4px;
-        border-color: red;
-    }
-    .point__summary--header {
-        background-color: var(--bulma-primary-dark);
-        padding-left: 10px;
-        margin-bottom: 5px;
-        border-radius: 10px;
-    }
-    .point__summary--info,
-    .card-content.point__summary--info {
-        padding-left: 10px;
-    }
-    .point__summary--info p {
-        margin-bottom: 0.25em;
-    }
-    @media only screen and (max-width: 600px){
-    .point__summary--element {
-        width: 100%;
-    }
-
-    .fullwidth__mobile {
-        width: 100%;
-    }
-    }
-</style>
-
-<section class="is-flex is-flex-direction-column is-justify-content-center is-justify-content-space-around is-flex-wrap-wrap" style="margin-bottom: 2rem;">
-    <div class="point__summary--element">
-
-        <div class="p-2">
-            <div class="is-flex is-flex-direction-row">
-                <div class="card-header-title point__summary--header">Email</div>
-                <div class="card-header-icon"></div>
-            </div>
-            <div class="card-content point__summary--info">
-                <p>{{ viewData.userData.email }}</p>
-            </div>
-        </div>
-
-        <div class="p-2">
-            <div class="is-flex is-flex-direction-row">
-                <div class="card-header-title point__summary--header">Account data</div>
-                <div class="card-header-icon"></div>
-            </div>
-            <div class="card-content point__summary--info">
-                <p>Admin: {{ viewData.userData.isAdmin }}</p>
-                <p>Created on: {{ viewData.userData.time.created }}</p>
-                <p>Account age: {{ viewData.userData.time.created }}</p>
-                <p>Last login: {{ viewData.userData.time.lastLogin }}</p>
-            </div>
-        </div>
-
-        <div class="p-2">
-            <div class="is-flex is-flex-direction-row">
-                <div class="card-header-title point__summary--header">Feedback entries</div>
-                <div class="card-header-icon"></div>
-            </div>
-            <div class="card-content point__summary--info">
-                <p>Feedback entries: {{ viewData.userData.points.length }}</p>
-                <p>Unique categories: {{ viewData.extraData.uniqueCategories }}</p>
-            </div>
-        </div>
-
-    </div>
-</section>

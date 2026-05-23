@@ -1,6 +1,11 @@
+<div
+  id="create-collection-panel"
+  class="create-collection-panel mb-5"
+  {{#unless viewData.showCreateCollectionForm}}style="display: none;"{{/unless}}
+>
 <form
   id="create-collection-form"
-  class="box mb-5"
+  class="box mb-0"
   action="/collections/create"
   method="POST"
   name="create-collection-form"
@@ -63,3 +68,4 @@
     </div>
   </div>
 </form>
+</div>

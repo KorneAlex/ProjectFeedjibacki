@@ -1,3 +1,4 @@
+{{!-- Maps disabled in frontend templates
 
 <form class="box" action="/map/add-point/submit" method="POST" name="form">
   <label>Add product feedback:</label>
@@ -13,14 +14,15 @@
         <input class="input" type="text" placeholder="Longitude" value="${e.lngLat.lng}" required name="lon" />
       </div>
       <div class="field">
-        {{!-- TODO: fix it to not be required --}}
+        <!-- TODO: fix it to not be required -->
         <input class="input" type="text" placeholder="Your feedback" required name="description" maxlength="200">
       </div>
       <div class="field">
-        {{!-- temp --}}
+        <!-- temp -->
         <input class="input" type="text" placeholder="Product category" name="categories" maxlength="200"> 
       </div>
     </div>
   </div>
   <button class="button is-primary">Save feedback</button>
 </form>
+--}}

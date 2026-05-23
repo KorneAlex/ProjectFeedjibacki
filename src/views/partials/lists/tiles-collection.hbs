@@ -1,30 +1,27 @@
-{{#if viewData.collections.length}}
-  <h2 class="title is-5 mb-4">Your collections</h2>
-  <div class="collections-grid">
-    {{#each viewData.collections}}
-      <article class="collection-tile">
-        <h3 class="collection-tile__title">
-          <a href="/collections/{{this._id}}">{{this.name}}</a>
-        </h3>
-        <p class="collection-tile__meta">{{this.itemCount}} item(s) · {{this.privacy}}</p>
-        {{#if this.items.length}}
-          <ul class="collection-tile__items">
-            {{#each this.items}}
-              <li>
-                <a href="/my-items">{{this.name}}</a>
-              </li>
-            {{/each}}
-          </ul>
-        {{/if}}
-        <div class="collection-tile__actions mt-3">
-          <a class="button is-small is-primary is-light" href="/collections/{{this._id}}?edit=1">Edit</a>
-        </div>
-      </article>
-    {{/each}}
-  </div>
-{{else}}
-  <div class="notification is-light">
-    <p class="mb-3">You do not have any collections yet. Use the form above to create your first collection.</p>
-    <a class="button is-primary is-light" href="/my-items">Go to My items</a>
-  </div>
-{{/if}}
+<h2 class="title is-5 mb-4">Your collections</h2>
+<div class="collections-grid">
+  {{> lists/add-collection-tile }}
+  {{#each viewData.collections}}
+    <article class="collection-tile">
+      <h3 class="collection-tile__title">
+        <a href="/collections/{{this._id}}">{{this.name}}</a>
+      </h3>
+      <p class="collection-tile__meta">{{this.itemCount}} item(s) · {{this.privacy}}</p>
+      {{#if this.items.length}}
+        <ul class="collection-tile__items">
+          {{#each this.items}}
+            <li>
+              <a href="/my-items">{{this.name}}</a>
+            </li>
+          {{/each}}
+        </ul>
+      {{/if}}
+      <div class="collection-tile__actions mt-3">
+        <a class="button is-small is-primary is-light" href="/collections/{{this._id}}?edit=1">Edit</a>
+      </div>
+    </article>
+  {{/each}}
+</div>
+{{#unless viewData.collections.length}}
+  <p class="help has-text-grey mt-3 mb-0">Click the first tile to create your first collection.</p>
+{{/unless}}

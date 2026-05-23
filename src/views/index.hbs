@@ -1,10 +1,13 @@
 <section class="home-hero">
   <div class="container">
     <h1 class="home-hero__title">Feedjibacki</h1>
-    <p class="home-hero__subtitle">Save feedback on products — where you bought them and when</p>
-    <p class="home-hero__tagline">Your reviews, tied to real places on the map</p>
+    <p class="home-hero__subtitle">Your personal reviews for products you've bought and tried yourself</p>
+    <p class="home-hero__tagline">Rate items, add categories, group them into collections, and leave notes — so when you forget whether you liked something, your own review is waiting for you.</p>
     {{#if viewData.isAuthenticated}}
-      <a href="/map" class="button">Open map</a>
+      <div class="home-hero__actions">
+        <a href="/my-items" class="button">My items</a>
+        <a href="/my-collections" class="button is-light">My collections</a>
+      </div>
     {{else}}
       <a href="/signup" class="button">Get started — Sign up</a>
     {{/if}}
@@ -14,28 +17,29 @@
 <div class="container">
   <div class="home-features">
     <div class="home-feature">
-      <div class="home-feature__icon" aria-hidden="true">🛒</div>
-      <h2 class="home-feature__title">Log every purchase</h2>
-      <p class="home-feature__text">Record what you think about a product, the shop or place you bought it, and when — all on one map.</p>
+      <div class="home-feature__icon" aria-hidden="true">📝</div>
+      <h2 class="home-feature__title">Remember what you thought</h2>
+      <p class="home-feature__text">Keep a private log of items you've purchased and tested. Next time you're at the shop wondering &ldquo;Did I like this?&rdquo;, open the app and read your past self's review.</p>
     </div>
     <div class="home-feature">
-      <div class="home-feature__icon" aria-hidden="true">📍</div>
-      <h2 class="home-feature__title">Place &amp; time matter</h2>
-      <p class="home-feature__text">Pin purchase locations and revisit your feedback whenever you shop nearby again.</p>
+      <div class="home-feature__icon" aria-hidden="true">🏷️</div>
+      <h2 class="home-feature__title">Categories &amp; collections</h2>
+      <p class="home-feature__text">Tag products with categories and organise them into collections — weekly shop, freezer staples, favourites, or any grouping that matches how you buy.</p>
     </div>
     <div class="home-feature">
-      <div class="home-feature__icon" aria-hidden="true">✏️</div>
-      <h2 class="home-feature__title">Simple &amp; fast</h2>
-      <p class="home-feature__text">Add, browse, and manage product feedback with a clean interface on any device.</p>
+      <div class="home-feature__icon" aria-hidden="true">⭐</div>
+      <h2 class="home-feature__title">Ratings &amp; your comments</h2>
+      <p class="home-feature__text">Score each item and write notes only you see. Prices, shops, and details can sit alongside the review so you can compare over time.</p>
     </div>
   </div>
 
   <section class="home-cta">
     {{#if viewData.isAuthenticated}}
-      <h2 class="home-cta__title">Ready to log more feedback?</h2>
-      <a href="/map" class="button is-primary">Go to map</a>
+      <h2 class="home-cta__title">Ready to add or update a review?</h2>
+      <a href="/my-items" class="button is-primary">My items</a>
+      <a href="/my-collections" class="button is-light">My collections</a>
     {{else}}
-      <h2 class="home-cta__title">Create an account and start sharing feedback</h2>
+      <h2 class="home-cta__title">Create an account and start your personal review log</h2>
       <a href="/signup" class="button is-primary">Sign up</a>
       <span class="home-cta__sep">or</span>
       <a href="/login" class="button is-light">Log in</a>

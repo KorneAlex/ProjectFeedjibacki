@@ -21,16 +21,18 @@ const refreshTokenExpirySeconds = parseInt(process.env.REFRESH_TOKEN_EXPIRY_SECO
 const leewaySecondsForAccessToken = parseInt(process.env.LEEWAY_SECONDS_FOR_ACCESS_TOKEN) || 120;
 
 export function signAccessTokenForUser(user) {
+  const isAdmin = user.metadata?.isAdmin ?? user.isAdmin;
   return jwt.sign(
-    { id: user._id.toString(), admin: !!user.isAdmin },
+    { id: user._id.toString(), admin: !!isAdmin },
     process.env.JWT_SECRET,
     { expiresIn: accessTokenExpirySeconds },
   );
   }
 
 export function signRefreshTokenForUser(user) {
+  const isAdmin = user.metadata?.isAdmin ?? user.isAdmin;
   return jwt.sign(
-    { id: user._id.toString(), admin: !!user.isAdmin },
+    { id: user._id.toString(), admin: !!isAdmin },
     process.env.JWT_REFRESH_SECRET,
     { expiresIn: refreshTokenExpirySeconds },
   );
