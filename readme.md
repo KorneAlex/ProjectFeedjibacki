@@ -1,105 +1,102 @@
-# NoteOnMap
+# Feedjibacki
 
-A web application that allows users to create **collections of locations on a map**, attach **notes** and filter them to display a specific category.
+A web application for keeping **your own personal reviews** of products you've bought and tried yourself.
 
-The goal of the project is to provide a simple way to save interesting places, ideas, observations, or research points directly on a map interface.
+When you're back at the shop and can't remember whether you liked something, Feedjibacki lets you look up **your past rating and comments**. Add **categories**, group items into **collections**, and track prices and notes in one place.
 
-Users can create collections, add markers to specific coordinates, and attach descriptive notes to each location.
+The project started from lab exercises in WebDev2 and was extended for a full-stack assignment. An earlier map-based prototype is included in the codebase but map UI is currently disabled in the frontend templates.
 
-The starting version has been copied and modified fom my test project that was created to practice lab contents from our lectures from WebDev2 please see it here: https://github.com/KorneAlex/webdev2
-
-AI has been used for the UI to deal with CSS and animations. Almost never for the functions. When ever AI used for the backend you can find a comment about it.
-Any other issue is solved with [stackoverflow](https://stackoverflow.com/), [geeksfor](https://www.geeksforgeeks.org/) and tools documentation.
+AI has been used for UI work (CSS and layout). Backend logic is written manually; where AI helped on the server, you'll find a comment in the code. Other problems were solved with [Stack Overflow](https://stackoverflow.com/), [GeeksforGeeks](https://www.geeksforgeeks.org/), and official documentation.
 
 ---
 
 ## Features
 
-- User authentication
-- Create and manage map collections
-- Add points to the map
-- Attach notes to locations
-- Store data persistently in MongoDB
-- Server-side rendering using Handlebars
-- Input validation
-- Automated testing
-- Code linting
+- User sign-up, login, and account management
+- **Items** — log products you've purchased and tested, with cover images, descriptions, and shop/price fields
+- **Ratings & comments** — score items (0–100) and store your own notes on each product
+- **Categories** — tag items for browsing and filtering
+- **Collections** — group related items (e.g. weekly shop, favourites, freezer)
+- Private, public, or shared access settings on items (shared flow planned)
+- Server-side rendering with Handlebars
+- MongoDB persistence via Mongoose
+- Joi validation on forms and APIs
+- Image uploads (Cloudinary) for item cover photos
+- Automated tests and ESLint
 
 ---
 
 ## Tech Stack
 
-Backend
+**Backend**
+
 - Node.js
 - Hapi.js
 - MongoDB
 - Mongoose
 
-Frontend
-- Handlebars templates
+**Frontend**
 
-Authentication
-- @hapi/cookie
+- Handlebars templates
+- Bulma CSS
+
+**Authentication**
+
+- JWT (`hapi-auth-jwt2`)
 - bcrypt
 
-Validation
-- Joi
+**Other**
 
-Development Tools
-- ESLint
-- Mocha
-- Chai
-- Nodemon
-- dotenv
+- Joi — validation
+- Cloudinary — image hosting
+- ESLint, Mocha, Chai, Nodemon, dotenv
 
 ---
 
 ## Installation
 
-Clone the repository
+Clone the repository:
 
 ```bash
 git clone https://github.com/KorneAlex/NoteOnMap.git
-cd note-on-map
+cd NoteOnMap
 ```
 
-Install dependencies
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Create a `.env` file in the root directory and add required environment variables (for example database connection string).
+Create a `.env` file in the project root with the required variables (MongoDB connection, session secrets, Cloudinary keys, etc.). See your course notes or `.env.example` if one is provided.
 
 ---
 
 ## Running the Application
 
-Start the server
+Start the server:
 
 ```bash
 npm start
 ```
 
-Development mode with automatic reload using Nodemon
+Development mode with automatic reload (Nodemon):
 
 ```bash
 npm run nd
 ```
 
+Open the app in your browser at the URL shown in the console (typically `http://localhost:3000`).
+
 ---
 
 ## Testing
-
-Run unit tests
 
 ```bash
 npm test
 ```
 
 ## Linting
-
-Check code quality using ESLint
 
 ```bash
 npm run lint
@@ -111,39 +108,46 @@ npm run lint
 
 ```
 project-root
-│
-├── controllers     # Routes handlers
-├── lib             # Modules for the server.js
-├── models          # DB and module handlers 
-├── views           # Handlebars templates, particles and pages
-├── test            # Mocha tests
-├── server.js       # Application entry point
-└── .env            # Environment variables
+├── src/
+│   ├── controllers/    # Route handlers
+│   ├── lib/              # Server plugins, auth, Cloudinary, etc.
+│   ├── models/           # Joi schemas and MongoDB stores
+│   ├── views/            # Handlebars layouts, pages, partials
+│   ├── css/              # Stylesheets
+│   └── api/              # JSON API routes
+├── test/                 # Mocha tests
+├── routes.js             # Route table
+├── server.js             # Application entry point
+└── .env                  # Environment variables (not committed)
 ```
 
 ---
 
-## Purpose of the Project
+## Main routes (overview)
 
-This project was built for SETU Full stack Web Development Assignment2 to explore:
-
-- building APIs with Hapi
-- authentication with cookies
-- MongoDB data modelling
-- server-side rendering
-- automated testing
-- linting and code quality practices
+| Area | Examples |
+|------|----------|
+| Home | `/` |
+| Account | `/login`, `/signup`, `/account` |
+| Items | `/my-items`, `/items/{id}` |
+| Collections | `/my-collections`, `/collections/{id}` |
+| Categories | `/my-categories` |
 
 ---
 
-## Future Improvements
+## Purpose
 
-- Interactive map UI
-- Creating collections
-- API endpoints
+Built for **SETU Full Stack Web Development** (Assignment 2) to practice:
+
+- Hapi.js routing and plugins
+- Authentication and authorisation
+- MongoDB data modelling
+- Server-side rendering
+- Form validation and file uploads
+- Testing and linting
 
 ---
 
 ## License
 
-This project is open source and available under the MIT License.
+MIT License — see [package.json](package.json).

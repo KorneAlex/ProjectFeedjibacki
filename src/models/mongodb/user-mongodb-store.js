@@ -1,6 +1,25 @@
 import { User } from "./db.js";
 import { signupSchema } from "../joi-schema.js";
 
+//AI Help
+function mapUpdateToNested(updateData) {
+  const paths = {
+    username: "metadata.username",
+    email: "metadata.email",
+    password: "metadata.password",
+    isAdmin: "metadata.isAdmin",
+    map_api_key: "data.map_api_key",
+    points: "data.points",
+  };
+  const setFields = {};
+  for (const [key, path] of Object.entries(paths)) {
+    if (updateData[key] !== undefined) {
+      setFields[path] = updateData[key];
+    }
+  }
+  return setFields;
+}
+
 export const usersStore = {
   // Get      ==================================================================================================================================
 
@@ -9,11 +28,11 @@ export const usersStore = {
   },
 
   async getUserByEmail(email) {
-    return User.findOne({ email }).lean();
+    return await User.findOne({ "metadata.email": email }).lean();
   },
 
   async getUserByUsername(username) {
-    return User.findOne({ username }).lean();
+    return await User.findOne({ "metadata.username": username }).lean();
   },
 
   /**
@@ -33,12 +52,12 @@ export const usersStore = {
     if (typeof id !== "string") {
       id = id.toString();
     }
-    return User.findById(id).lean();
+    return await User.findById(id).lean();
   },
 
   async getApiKeyByUserId(userId) {
     const user = await this.getUserById(userId);
-    return user.map_api_key;
+    return user?.data?.map_api_key ?? user?.map_api_key;
   },
 
   // Create   ==================================================================================================================================
@@ -53,17 +72,32 @@ export const usersStore = {
       return null;
     }
     const newUser = new User({
-      username: value.username,
-      email: value.email,
-      password: value.password,
-      points: [],
+      metadata: {
+        username: value.username,
+        email: value.email,
+        password: value.password,
+        isAdmin: false,
+        time: {
+          created: new Date().toISOString(),
+          edited: "",
+          deleted: "",
+          admin_status_since: "",
+        },
+      },
+      data: {
+        points: [],
+        items: [],
+        collections: [],
+        categories: [],
+        map_api_key: "",
+      },
     });
     await newUser.save();
     return newUser.toObject();
   },
 
   async addApiKey(userId, key) {
-    await User.updateOne({ _id: userId }, { map_api_key: key });
+    await User.updateOne({ _id: userId }, { $set: { "data.map_api_key": key } });
     return await this.getUserById(userId);
   },
 
@@ -84,11 +118,16 @@ export const usersStore = {
     delete updateData._id;
     delete updateData.passwordRepeat;
     delete updateData.passwordRepeat;
-    const res = await User.updateOne({ _id: uid }, { $set: updateData });
+    const setFields = mapUpdateToNested(updateData);
+    if (Object.keys(setFields).length === 0) {
+      return null;
+    }
+    setFields["metadata.time.edited"] = new Date().toISOString();
+    const res = await User.updateOne({ _id: uid }, { $set: setFields });
     if (res.matchedCount === 0) {
       return null;
     }
-    return User.findById(uid).lean();
+    return await User.findById(uid).lean();
   },
 
   // Delete   ==================================================================================================================================
@@ -113,7 +152,7 @@ export const usersStore = {
 
   async credentialsCheck(email, username, pass) {
     const user = await this.userExist(email, username);
-    if (user && user.password === pass) {
+    if (user && user.metadata?.password === pass) {
       return user;
     }
     return null;
@@ -123,17 +162,17 @@ export const usersStore = {
     try {
       const isAdmin = await User.findOne(
         { _id: uid },
-        { isAdmin: 1, _id: 0 },
+        { "metadata.isAdmin": 1, _id: 0 },
       ).lean();
       // console.log("[ userIsAdmin ] ", isAdmin);
-      return isAdmin["isAdmin"];
+      return isAdmin?.metadata?.isAdmin;
     } catch {
       return null;
     }
   },
 
   async isLastAdmin() {
-    const adminList = await User.find({ isAdmin: true }).lean();
+    const adminList = await User.find({ "metadata.isAdmin": true }).lean();
     // console.log("adminList.length", adminList.length);
     return !!adminList.lenght == 1;
   },

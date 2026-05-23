@@ -1,0 +1,375 @@
+<div
+  id="create-item-panel"
+  class="create-item-panel mb-5"
+  {{#unless viewData.showCreateItemForm}}style="display: none;"{{/unless}}
+>
+<form
+  class="box mb-0"
+  action="/items/create-item"
+  method="POST"
+  enctype="multipart/form-data"
+  name="create-item-form"
+  autocomplete="on"
+>
+  <h2 class="title is-5 mb-2">Add an item</h2>
+  <p class="subtitle is-6 has-text-grey mb-4">Fields map to
+    <code>data</code>
+    and
+    <code>metadata</code>
+    on the item document (price slots use a numeric value or leave blank for an empty string).</p>
+
+  {{#if viewData.infoMessage}}
+    <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+  {{/if}}
+
+  <div class="field">
+    <label class="label" for="item-name">Name</label>
+    <div class="control">
+      <input
+        id="item-name"
+        class="input"
+        type="text"
+        name="name"
+        placeholder="Item or product name"
+        required
+        minlength="2"
+        maxlength="100"
+      />
+    </div>
+    <p class="help">2–100 characters.</p>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-description">Description</label>
+    <div class="control">
+      <textarea
+        id="item-description"
+        class="textarea"
+        name="description"
+        placeholder="Notes, quality, where you bought it, etc."
+        rows="3"
+        maxlength="500"
+      ></textarea>
+    </div>
+    <p class="help">Optional, up to 500 characters.</p>
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-half-tablet">
+      <div class="field">
+        <label class="label" for="item-categories">Categories</label>
+        <div class="control">
+          <input
+            id="item-categories"
+            class="input"
+            type="text"
+            name="categories"
+            placeholder="frozen food, pre-cooked (comma-separated)"
+            maxlength="400"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="column is-half-tablet">
+      <div class="field">
+        <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap gap-2 mb-2">
+          <label class="label mb-0">Collections</label>
+          <div class="buttons are-small mb-0">
+            <a
+              class="button is-link is-light"
+              href="/my-collections#create-collection-form"
+              target="_blank"
+              rel="noopener noreferrer"
+            >New collection</a>
+            <button
+              type="button"
+              class="button is-link is-light"
+              id="reload-collections-btn"
+            >Reload list</button>
+          </div>
+        </div>
+        <div id="item-collections-mount">
+        {{#if viewData.collections.length}}
+        <div
+          id="item-collections-list"
+          class="collection-item-checkboxes"
+        >
+          {{#each viewData.collections}}
+            <label class="checkbox collection-item-checkboxes__label">
+              <input type="checkbox" name="collection_ids" value="{{this._id}}" />
+              {{this.name}}
+            </label>
+          {{/each}}
+        </div>
+        {{else}}
+        <p id="item-collections-empty" class="help">No collections yet.
+          <a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a>
+          in a new tab, then click Reload list.</p>
+        {{/if}}
+        </div>
+        <p id="item-collections-status" class="help" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-access">Access</label>
+    <div class="control">
+      <div class="select is-fullwidth">
+        <select id="item-access" name="access">
+          <option value="private" selected>Private</option>
+          <option value="public">Public</option>
+          <option value="shared">Shared</option>
+        </select>
+      </div>
+    </div>
+    <p class="help">Private: only you. Public: any signed-in user. Shared: chosen users (coming later).</p>
+  </div>
+
+  <fieldset class="mb-4">
+    <legend class="label mb-3">Price</legend>
+    <div class="columns is-multiline">
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label" for="item-shop">Shop</label>
+          <div class="control">
+            <input
+              id="item-shop"
+              class="input"
+              type="text"
+              name="shop"
+              maxlength="200"
+              placeholder="Shop id or retailer name"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-currency">Currency (ISO)</label>
+          <div class="control">
+            <input
+              id="price-currency"
+              class="input"
+              type="text"
+              name="currency"
+              value="EUR"
+              maxlength="3"
+              autocapitalize="characters"
+              inputmode="text"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-paid">Paid (
+            <code>data.price.paid.value</code>)</label>
+          <div class="control">
+            <input
+              id="price-paid"
+              class="input"
+              type="number"
+              name="paid_value"
+              step="any"
+              min="0"
+              placeholder="e.g. 12.99"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-normal">Normal price</label>
+          <div class="control">
+            <input
+              id="price-normal"
+              class="input"
+              type="number"
+              name="normal_price_value"
+              step="any"
+              min="0"
+              placeholder="e.g. 19.99"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="price-sale">Sale price</label>
+          <div class="control">
+            <input
+              id="price-sale"
+              class="input"
+              type="number"
+              name="sale_price_value"
+              step="any"
+              min="0"
+              placeholder="Leave blank if not on sale"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="columns is-multiline">
+    <div class="column is-two-thirds-tablet">
+      <div class="field">
+        <label class="label" for="comments-owner">Your comment (
+          <code>data.comments.owner</code>)</label>
+        <div class="control">
+          <textarea
+            id="comments-owner"
+            class="textarea"
+            name="comments_owner"
+            placeholder="Feedback stored as the owner comment"
+            rows="2"
+            maxlength="500"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="column is-one-third-tablet">
+      <div class="field">
+        <label class="label" for="item-rating">Your rating (
+          <code>data.rating.owner</code>, 0–100)</label>
+        <div class="control">
+          <input
+            id="item-rating"
+            class="input"
+            type="number"
+            name="rating"
+            min="0"
+            max="100"
+            step="1"
+            placeholder="optional"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="item-imagefile">Cover image</label>
+    <div class="control">
+      <div id="file-select" class="file has-name is-fullwidth">
+        <label class="file-label">
+          <input
+            id="item-imagefile"
+            class="file-input"
+            name="imagefile"
+            type="file"
+            accept="image/png, image/jpeg"
+          >
+          <span class="file-cta">
+            <span class="file-icon">
+              <i class="fas fa-upload"></i>
+            </span>
+            <span class="file-label">Choose a file…</span>
+          </span>
+          <span class="file-name"></span>
+        </label>
+      </div>
+    </div>
+    <p class="help">Optional. PNG or JPEG, max 5 MB. Saved when you click Save item.</p>
+  </div>
+
+  <div class="field is-grouped">
+    <div class="control">
+      <button class="button is-primary" type="submit">Save item</button>
+    </div>
+  </div>
+</form>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const coverFileInput = document.getElementById("item-imagefile");
+    if (coverFileInput) {
+      coverFileInput.addEventListener("change", function () {
+        if (coverFileInput.files.length > 0) {
+          const fileName = coverFileInput.closest(".file")?.querySelector(".file-name");
+          if (fileName) fileName.textContent = coverFileInput.files[0].name;
+        }
+      });
+    }
+
+    const mountEl = document.getElementById("item-collections-mount");
+    const statusEl = document.getElementById("item-collections-status");
+    const reloadBtn = document.getElementById("reload-collections-btn");
+    if (!mountEl || !reloadBtn) return;
+
+    const emptyMessageHtml =
+      '<p id="item-collections-empty" class="help">No collections yet. ' +
+      '<a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a> ' +
+      "in a new tab, then click Reload list.</p>";
+
+    function getSelectedIds() {
+      const listEl = mountEl.querySelector("#item-collections-list");
+      if (!listEl) return [];
+      return [...listEl.querySelectorAll('input[name="collection_ids"]:checked')]
+        .map(function (checkbox) { return checkbox.value; });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderCollections(collections, selectedIds) {
+      mountEl.innerHTML = "";
+      if (!collections.length) {
+        mountEl.innerHTML = emptyMessageHtml;
+        return;
+      }
+
+      const listEl = document.createElement("div");
+      listEl.id = "item-collections-list";
+      listEl.className = "collection-item-checkboxes";
+
+      for (const collection of collections) {
+        const label = document.createElement("label");
+        label.className = "checkbox collection-item-checkboxes__label";
+        const id = String(collection._id);
+        const checked = selectedIds.includes(id) ? " checked" : "";
+        label.innerHTML =
+          '<input type="checkbox" name="collection_ids" value="' +
+          escapeHtml(id) + '"' + checked + " /> " + escapeHtml(collection.name);
+        listEl.appendChild(label);
+      }
+
+      mountEl.appendChild(listEl);
+    }
+
+    async function reloadCollections() {
+      reloadBtn.classList.add("is-loading");
+      statusEl.textContent = "";
+      statusEl.className = "help";
+      const selected = getSelectedIds();
+
+      try {
+        const response = await fetch("/api/collections/mine", {
+          credentials: "same-origin",
+        });
+        if (!response.ok) {
+          throw new Error("Could not load collections");
+        }
+        const collections = await response.json();
+        renderCollections(collections, selected);
+        if (collections.length) {
+          statusEl.textContent = "Loaded " + collections.length + " collection(s).";
+          statusEl.className = "help has-text-success";
+        }
+      } catch (err) {
+        statusEl.textContent = "Failed to reload collections.";
+        statusEl.className = "help has-text-danger";
+      } finally {
+        reloadBtn.classList.remove("is-loading");
+      }
+    }
+
+    reloadBtn.addEventListener("click", reloadCollections);
+  });
+</script>

@@ -1,0 +1,29 @@
+<div class="page-content">
+  <div class="container">
+    {{> forms/create-item-form }}
+    {{> lists/tiles-items }}
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tile = document.getElementById("add-item-tile");
+    const panel = document.getElementById("create-item-panel");
+    if (!tile || !panel) return;
+
+    function showCreateItemPanel() {
+      panel.style.display = "";
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      const nameInput = document.getElementById("item-name");
+      if (nameInput) nameInput.focus();
+    }
+
+    tile.addEventListener("click", showCreateItemPanel);
+    tile.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        showCreateItemPanel();
+      }
+    });
+  });
+</script>

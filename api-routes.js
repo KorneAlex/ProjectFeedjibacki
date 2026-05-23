@@ -1,5 +1,6 @@
 import { userApi } from "./src/api/user-api.js";
 import { pointApi } from "./src/api/point-api.js";
+import { collectionApi } from "./src/api/collection-api.js";
 
 export const apiRoutes = [
 // User API routes
@@ -11,4 +12,7 @@ export const apiRoutes = [
 
 // Points API routes
   { method: "POST", path: "/api/points", config: pointApi.create },
+
+// Collections API routes
+  { method: "GET", path: "/api/collections/getCollections", config: collectionApi.getCollections },
 ];

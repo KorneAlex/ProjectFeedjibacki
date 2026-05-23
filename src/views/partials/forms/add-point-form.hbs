@@ -1,10 +1,11 @@
+{{!-- Maps disabled in frontend templates
 
-<form class="box" action="/dashboard/add-point/submit" method="POST" name="form">
-  <label>Add new station:</label>
+<form class="box" action="/map/add-point/submit" method="POST" name="form">
+  <label>Add product feedback:</label>
   <div class="field">
     <div class="field-body is-flex is-flex-direction-column">
       <div class="field">
-       <input class="input" type="text" placeholder="Name" required name="name" />
+       <input class="input" type="text" placeholder="Product name" required name="name" />
       </div>
       <div class="field">
         <input class="input" type="text" placeholder="Latitude" value="${e.lngLat.lat}" required name="lat" />
@@ -13,14 +14,15 @@
         <input class="input" type="text" placeholder="Longitude" value="${e.lngLat.lng}" required name="lon" />
       </div>
       <div class="field">
-        {{!-- TODO: fix it to not be required --}}
-        <input class="input" type="text" placeholder="Description" required name="description" maxlength="200">
+        <!-- TODO: fix it to not be required -->
+        <input class="input" type="text" placeholder="Your feedback" required name="description" maxlength="200">
       </div>
       <div class="field">
-        {{!-- temp --}}
-        <input class="input" type="text" placeholder="Categories" name="categories" maxlength="200"> 
+        <!-- temp -->
+        <input class="input" type="text" placeholder="Product category" name="categories" maxlength="200"> 
       </div>
     </div>
   </div>
-  <button class="button is-primary">Create point</button>
+  <button class="button is-primary">Save feedback</button>
 </form>
+--}}

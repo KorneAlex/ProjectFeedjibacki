@@ -1,0 +1,396 @@
+<div class="box mb-5">
+  <h2 class="title is-5 mb-2">Edit item</h2>
+
+  {{#if viewData.infoMessage}}
+    <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
+  {{/if}}
+
+  <form
+    id="edit-item-form"
+    action="/items/{{viewData.item._id}}/edit"
+    method="POST"
+    name="edit-item-form"
+    autocomplete="on"
+  >
+
+  <div class="field">
+    <label class="label" for="edit-item-name">Name</label>
+    <div class="control">
+      <input
+        id="edit-item-name"
+        class="input"
+        type="text"
+        name="name"
+        value="{{viewData.item.data.name}}"
+        required
+        minlength="2"
+        maxlength="100"
+      />
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="edit-item-description">Description</label>
+    <div class="control">
+      <textarea
+        id="edit-item-description"
+        class="textarea"
+        name="description"
+        rows="3"
+        maxlength="500"
+      >{{viewData.item.data.description}}</textarea>
+    </div>
+  </div>
+
+  <div class="columns is-multiline">
+    <div class="column is-half-tablet">
+      <div class="field">
+        <label class="label" for="edit-item-categories">Categories</label>
+        <div class="control">
+          <input
+            id="edit-item-categories"
+            class="input"
+            type="text"
+            name="categories"
+            value="{{viewData.itemCategoriesCsv}}"
+            placeholder="frozen food, pre-cooked (comma-separated)"
+            maxlength="400"
+          />
+        </div>
+      </div>
+    </div>
+    <div class="column is-half-tablet">
+      <div class="field">
+        <div class="is-flex is-justify-content-space-between is-align-items-center is-flex-wrap-wrap gap-2 mb-2">
+          <label class="label mb-0">Collections</label>
+          <div class="buttons are-small mb-0">
+            <a
+              class="button is-link is-light"
+              href="/my-collections#create-collection-form"
+              target="_blank"
+              rel="noopener noreferrer"
+            >New collection</a>
+            <button
+              type="button"
+              class="button is-link is-light"
+              id="edit-reload-collections-btn"
+            >Reload list</button>
+          </div>
+        </div>
+        <div id="edit-item-collections-mount">
+        {{#if viewData.collections.length}}
+        <div
+          id="edit-item-collections-list"
+          class="collection-item-checkboxes"
+        >
+          {{#each viewData.collections}}
+            <label class="checkbox collection-item-checkboxes__label">
+              <input
+                type="checkbox"
+                name="collection_ids"
+                value="{{this._id}}"
+                {{#if (contains ../viewData.selectedCollectionIds this._id)}}checked{{/if}}
+              />
+              {{this.name}}
+            </label>
+          {{/each}}
+        </div>
+        {{else}}
+        <p id="edit-item-collections-empty" class="help">No collections yet.
+          <a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a>
+          in a new tab, then click Reload list.</p>
+        {{/if}}
+        </div>
+        <p id="edit-item-collections-status" class="help" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="edit-item-access">Access</label>
+    <div class="control">
+      <div class="select is-fullwidth">
+        <select id="edit-item-access" name="access">
+          <option value="private" {{#if (eq viewData.item.metadata.access "private")}}selected{{/if}}>Private</option>
+          <option value="public" {{#if (eq viewData.item.metadata.access "public")}}selected{{/if}}>Public</option>
+          <option value="shared" {{#if (eq viewData.item.metadata.access "shared")}}selected{{/if}}>Shared</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <fieldset class="mb-4">
+    <legend class="label mb-3">Price</legend>
+    <div class="columns is-multiline">
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label" for="edit-item-shop">Shop</label>
+          <div class="control">
+            <input
+              id="edit-item-shop"
+              class="input"
+              type="text"
+              name="shop"
+              value="{{viewData.item.data.shop}}"
+              maxlength="200"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-half-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="edit-price-currency">Currency (ISO)</label>
+          <div class="control">
+            <input
+              id="edit-price-currency"
+              class="input"
+              type="text"
+              name="currency"
+              value="{{viewData.item.data.price.currency}}"
+              maxlength="3"
+              autocapitalize="characters"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="edit-price-paid">Paid</label>
+          <div class="control">
+            <input
+              id="edit-price-paid"
+              class="input"
+              type="number"
+              name="paid_value"
+              value="{{viewData.item.data.price.paid.value}}"
+              step="any"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="edit-price-normal">Normal price</label>
+          <div class="control">
+            <input
+              id="edit-price-normal"
+              class="input"
+              type="number"
+              name="normal_price_value"
+              value="{{viewData.item.data.price.normal_price.value}}"
+              step="any"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+      <div class="column is-one-third-tablet">
+        <div class="field">
+          <label class="label is-size-7" for="edit-price-sale">Sale price</label>
+          <div class="control">
+            <input
+              id="edit-price-sale"
+              class="input"
+              type="number"
+              name="sale_price_value"
+              value="{{viewData.item.data.price.sale_price.value}}"
+              step="any"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <div class="columns is-multiline">
+    <div class="column is-two-thirds-tablet">
+      <div class="field">
+        <label class="label" for="edit-comments-owner">Your comment</label>
+        <div class="control">
+          <textarea
+            id="edit-comments-owner"
+            class="textarea"
+            name="comments_owner"
+            rows="2"
+            maxlength="500"
+          >{{viewData.item.data.comments.owner}}</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="column is-one-third-tablet">
+      <div class="field">
+        <label class="label" for="edit-item-rating">Your rating (0–100)</label>
+        <div class="control">
+          <input
+            id="edit-item-rating"
+            class="input"
+            type="number"
+            name="rating"
+            value="{{viewData.item.data.rating.owner}}"
+            min="0"
+            max="100"
+            step="1"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4 edit-item-cover">
+    <div class="field">
+      <label class="label" for="edit-item-img-cover">Image URL</label>
+      <div class="control">
+        <input
+          id="edit-item-img-cover"
+          class="input"
+          type="url"
+          name="img_cover"
+          value="{{viewData.item.data.img.cover}}"
+          maxlength="2048"
+          placeholder="https://…"
+        />
+      </div>
+      <p class="help">Optional. Saved when you click Save changes.</p>
+    </div>
+  </div>
+  </form>
+
+  <div class="field">
+    <label class="label" for="edit-item-imagefile">Upload picture</label>
+    <form
+      class="edit-item-cover__upload"
+      action="/items/uploadImage?id={{viewData.item._id}}"
+      method="POST"
+      enctype="multipart/form-data"
+    >
+      <div class="field is-grouped is-grouped-multiline mb-0">
+        <div class="control is-expanded">
+          <div id="file-select" class="file has-name is-fullwidth">
+            <label class="file-label">
+              <input
+                id="edit-item-imagefile"
+                class="file-input"
+                name="imagefile"
+                type="file"
+                accept="image/png, image/jpeg"
+              >
+              <span class="file-cta">
+                <span class="file-icon">
+                  <i class="fas fa-upload"></i>
+                </span>
+                <span class="file-label">Choose a file…</span>
+              </span>
+              <span class="file-name"></span>
+            </label>
+          </div>
+        </div>
+        <div class="control">
+          <button type="submit" class="button is-primary is-light">Upload</button>
+        </div>
+      </div>
+    </form>
+    <p class="help">PNG or JPEG, max 5 MB. Uploads immediately and sets the cover image.</p>
+  </div>
+
+  <div class="field is-grouped mt-5">
+    <div class="control">
+      <button class="button is-primary" type="submit" form="edit-item-form">Save changes</button>
+    </div>
+    <div class="control">
+      <a class="button is-light" href="/items/{{viewData.item._id}}">Cancel</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const mountEl = document.getElementById("edit-item-collections-mount");
+    const statusEl = document.getElementById("edit-item-collections-status");
+    const reloadBtn = document.getElementById("edit-reload-collections-btn");
+    if (!mountEl || !reloadBtn) return;
+
+    const emptyMessageHtml =
+      '<p id="edit-item-collections-empty" class="help">No collections yet. ' +
+      '<a href="/my-collections#create-collection-form" target="_blank" rel="noopener noreferrer">Create a collection</a> ' +
+      "in a new tab, then click Reload list.</p>";
+
+    function getSelectedIds() {
+      const listEl = mountEl.querySelector("#edit-item-collections-list");
+      if (!listEl) return [];
+      return [...listEl.querySelectorAll('input[name="collection_ids"]:checked')]
+        .map(function (checkbox) { return checkbox.value; });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function renderCollections(collections, selectedIds) {
+      mountEl.innerHTML = "";
+      if (!collections.length) {
+        mountEl.innerHTML = emptyMessageHtml;
+        return;
+      }
+
+      const listEl = document.createElement("div");
+      listEl.id = "edit-item-collections-list";
+      listEl.className = "collection-item-checkboxes";
+
+      for (const collection of collections) {
+        const label = document.createElement("label");
+        label.className = "checkbox collection-item-checkboxes__label";
+        const id = String(collection._id);
+        const checked = selectedIds.includes(id) ? " checked" : "";
+        label.innerHTML =
+          '<input type="checkbox" name="collection_ids" value="' +
+          escapeHtml(id) + '"' + checked + " /> " + escapeHtml(collection.name);
+        listEl.appendChild(label);
+      }
+
+      mountEl.appendChild(listEl);
+    }
+
+    async function reloadCollections() {
+      reloadBtn.classList.add("is-loading");
+      statusEl.textContent = "";
+      statusEl.className = "help";
+      const selected = getSelectedIds();
+
+      try {
+        const response = await fetch("/api/collections/getCollections", {
+          credentials: "same-origin",
+        });
+        if (!response.ok) {
+          throw new Error("Could not load collections");
+        }
+        const collections = await response.json();
+        renderCollections(collections, selected);
+        if (collections.length) {
+          statusEl.textContent = "Loaded " + collections.length + " collection(s).";
+          statusEl.className = "help has-text-success";
+        }
+      } catch (err) {
+        statusEl.textContent = "Failed to reload collections.";
+        statusEl.className = "help has-text-danger";
+      } finally {
+        reloadBtn.classList.remove("is-loading");
+      }
+    }
+
+    reloadBtn.addEventListener("click", reloadCollections);
+
+    const coverFileInput = document.getElementById("edit-item-imagefile");
+    if (coverFileInput) {
+      coverFileInput.addEventListener("change", function () {
+        if (coverFileInput.files.length > 0) {
+          const fileName = coverFileInput.closest(".file")?.querySelector(".file-name");
+          if (fileName) fileName.textContent = coverFileInput.files[0].name;
+        }
+      });
+    }
+  });
+</script>

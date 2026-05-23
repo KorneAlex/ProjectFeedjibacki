@@ -1,0 +1,19 @@
+<figure class="image item-cover-preview">
+  {{#if viewData.pointData}}
+    {{#if viewData.pointData.data.imgUrl}}
+      <img src="{{viewData.pointData.data.imgUrl}}" alt="Product photo">
+    {{else}}
+      <div class="item-cover-preview__placeholder">
+        <span class="has-text-grey">No image yet</span>
+      </div>
+    {{/if}}
+  {{else if viewData.item}}
+    {{#if viewData.item.data.img.cover}}
+      <img src="{{viewData.item.data.img.cover}}" alt="Cover for {{viewData.item.data.name}}">
+    {{else}}
+      <div class="item-cover-preview__placeholder">
+        <span class="has-text-grey">No image yet</span>
+      </div>
+    {{/if}}
+  {{/if}}
+</figure>

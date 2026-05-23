@@ -8,7 +8,7 @@
 ├── server.js
 ├── src
 │   ├── api
-│   │   ├── noteonmap-service.js
+│   │   ├── Feedjibacki-service.js
 │   │   └── user-api.js
 │   ├── controllers
 │   │   ├── accounts-controller.js
@@ -34,7 +34,7 @@
 │       ├── pages
 │       │   ├── about.hbs
 │       │   ├── account.hbs
-│       │   ├── dashboard.hbs
+│       │   ├── map.hbs
 │       │   ├── login.hbs
 │       │   ├── point.hbs
 │       │   ├── signup.hbs

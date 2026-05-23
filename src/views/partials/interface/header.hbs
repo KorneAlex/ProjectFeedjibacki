@@ -1,4 +1,12 @@
 <nav class="navbar" role="navigation" aria-label="main navigation">
+  {{#if viewData.title}}
+  <div class="navbar-page-header">
+    <h1 class="navbar-page-title title is-2 mb-0">{{viewData.title}}</h1>
+    {{#if viewData.subtitle}}
+    <p class="navbar-page-subtitle">{{viewData.subtitle}}</p>
+    {{/if}}
+  </div>
+  {{/if}}
   <div class="navbar-brand">
     {{!-- <a class="navbar-item" href="/">
       {{> svg/logo}}
@@ -14,12 +22,13 @@
   <div id="navbarBasicExample" class="navbar-menu">
     <div class="navbar-start">
       <a href="/" class="navbar-item" style="z-index: 1000;">
-        {{> svg/logo-text}}
+        {{!-- {{> svg/logo-text}} --}}
+        {{> svg/feedjibacki}}
       </a>
       {{#if viewData.isAuthenticated}}
-      <a href="/dashboard" class="navbar-item">
-        Dashboard
-      </a>
+      {{!-- <a href="/map" class="navbar-item">
+        Feedback map
+      </a> --}}
       {{#if viewData.userIsAdmin }}
       <a href="/users" class="navbar-item">
         Users
@@ -37,15 +46,25 @@
           </a>
           <hr class="navbar-divider">
           {{!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window --}}
-          <a target="_blank" rel="noopener noreferrer"href="https://github.com/KorneAlex/NoteOnMap/issues" class="navbar-item">
+          <a target="_blank" rel="noopener noreferrer"href="https://github.com/KorneAlex/Feedjibacki/issues" class="navbar-item">
             Report an issue
           </a>
         </div>
       </div>
+      {{!-- {{#unless viewData.title}}
+      <div>
+        <a href="/signup" class="button is-primary ml-4">
+          Sign up
+        </a>
+        <a href="/login" class="button is-light ml-2">
+          Log in
+        </a>
+      </div>
+      {{/unless}} --}}
     </div>
 
     <div class="navbar-end">
       {{> interface/account-menu}}
-      </div>
     </div>
+  </div>
 </nav>

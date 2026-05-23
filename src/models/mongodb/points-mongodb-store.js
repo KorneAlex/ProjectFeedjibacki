@@ -25,12 +25,12 @@ export const pointsStore = {
   async getAllPointsForUserId(uid) {
     const arr = await User.findOne(
       { _id: uid },
-      { points: 1, _id: 0 }, // projection. return points without _id
+      { "data.points": 1, _id: 0 }, // projection. return points without _id
     ).lean(); // get normal js object
     if (!arr) {
       return [];
     }
-    const points = arr.points;
+    const points = arr.data?.points ?? [];
     const pointsData = [];
     for (const pointId of points) {
       const pointData = await this.getPointDataById(pointId);
@@ -44,12 +44,12 @@ export const pointsStore = {
   async getAllPointsIdForUserId(uid) {
     const arr = await User.findOne(
       { _id: uid },
-      { points: 1, _id: 0 }, // projection. returns _id only
+      { "data.points": 1, _id: 0 }, // projection. returns _id only
     ).lean(); // get normal js object
     if (!arr) {
       return [];
     }
-    const points = arr.points;
+    const points = arr.data?.points ?? [];
     const pointsIds = [];
     for (const pointId of points) {
       pointsIds.push(pointId.toString());
@@ -87,7 +87,9 @@ export const pointsStore = {
     await newPoint.save();
     const user = await db.usersStore.getUserById(pointToAdd.owner);
     // console.log(user);
-    user.points.push(newPoint._id.toString());
+    if (!user.data) user.data = {};
+    if (!user.data.points) user.data.points = [];
+    user.data.points.push(newPoint._id.toString());
     await user.save();
     return newPoint;
   },
