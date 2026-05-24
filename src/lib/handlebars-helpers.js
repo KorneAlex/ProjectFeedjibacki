@@ -21,6 +21,10 @@ export function registerHandlebarsHelpers() {
   });
 
   // AI Help. Compares an array with a value. Returns true if the value is found in the array, false otherwise.
+  Handlebars.registerHelper("encodeUriComponent", function (value) {
+    return encodeURIComponent(value?.toString?.() ?? String(value ?? ""));
+  });
+
   Handlebars.registerHelper("contains", function (arr, value) {
     if (!Array.isArray(arr)) return false;
     const needle = value?.toString?.() ?? String(value);

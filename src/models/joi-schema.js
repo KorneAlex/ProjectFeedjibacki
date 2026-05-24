@@ -216,6 +216,11 @@ const itemMetadataSchema = Joi.object({
   access: Joi.string().valid("private", "public", "shared").required(),
 });
 
+/** POST `/items/{id}/share` — owner creates a named guest share link. */
+export const shareItemFormSchema = Joi.object({
+  share_name: Joi.string().min(1).max(80).trim().required(),
+});
+
 export const itemSchema = Joi.object({
   _id: Joi.any().optional(),
   metadata: itemMetadataSchema.required(),

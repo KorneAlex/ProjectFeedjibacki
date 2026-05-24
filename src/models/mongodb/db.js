@@ -107,6 +107,16 @@ const itemSchema = new mongoose.Schema({
       enum: ["private", "public", "shared"],
       default: "private",
     },
+    sharedLinks: {
+      type: [
+        {
+          name: { type: String, required: true },
+          sharedAt: { type: String, required: true },
+          token: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
   },
   data: {
     name: { type: String, required: true },

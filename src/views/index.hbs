@@ -6,13 +6,17 @@
 
     {{#if viewData.isAuthenticated}}
       <h2 class="home-cta__title">Ready to add or update a review?</h2>
-      <a href="/my-items" class="button is-primary">My items</a>
-      <a href="/my-collections" class="button is-light">My collections</a>
+      <div class="home-hero__actions">
+        <a href="/my-items" class="button is-primary">My items</a>
+        <a href="/my-collections" class="button is-light">My collections</a>
+      </div>
     {{else}}
       <h2 class="home-cta__title">Create an account and start your personal review log</h2>
-      <a href="/signup" class="button is-primary">Sign up</a>
-      <span class="home-cta__sep">or</span>
-      <a href="/login" class="button is-light">Log in</a>
+      <div class="home-hero__actions">
+        <a href="/signup" class="button is-primary">Sign up</a>
+        <span class="home-hero__sep">or</span>
+        <a href="/login" class="button is-light">Log in</a>
+      </div>
     {{/if}}
   </div>
 </section>

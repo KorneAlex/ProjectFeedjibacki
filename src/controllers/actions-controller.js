@@ -6,8 +6,10 @@ import {
   createCollectionFormSchema,
   editCollectionFormSchema,
   adminUserEditFormSchema,
+  shareItemFormSchema,
 } from "../models/joi-schema.js";
 import { cloudinary } from "../lib/cloudinary.js";
+import { signShareTokenForItem } from "../lib/hapi-auth.js";
 
 /** Splits a comma-separated form field into trimmed non-empty strings. */
 function splitCommaList(str) {
@@ -466,6 +468,60 @@ export const actionsController = {
       }
 
       return h.redirect(`/items/${itemId}?info=updated`);
+    },
+  },
+
+  createItemShare: {
+    auth: "jwt",
+    validate: {
+      payload: shareItemFormSchema,
+      failAction: async (request, h, err) => {
+        const itemId = request.params.id;
+        return h
+          .redirect(`/items/${itemId}?info=share_error&share_error=${encodeURIComponent(err.details[0].message)}`)
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id.toString();
+      const itemId = request.params.id;
+      const shareName = request.payload.share_name.trim();
+
+      const token = signShareTokenForItem({ userId, itemId });
+      const result = await db.itemsStore.addSharedLink(itemId, userId, {
+        name: shareName,
+        token,
+      });
+
+      if (!result) {
+        return h.redirect(`/items/${itemId}?info=share_error`);
+      }
+      if (result.duplicateName) {
+        return h.redirect(
+          `/items/${itemId}?info=share_error&share_error=${encodeURIComponent("A share link with this name already exists.")}`,
+        );
+      }
+
+      const baseUrl =
+        process.env.SERVICE_URL?.replace(/\/$/, "") ||
+        `${request.server.info.protocol}://${request.info.host}`;
+      const shareUrl = `${baseUrl}/shared/${itemId}?token=${encodeURIComponent(token)}`;
+
+      return h.redirect(
+        `/items/${itemId}?info=share_created&share_url=${encodeURIComponent(shareUrl)}`,
+      );
+    },
+  },
+
+  deleteItemShare: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id.toString();
+      const itemId = request.params.id;
+      const shareName = decodeURIComponent(request.params.name);
+
+      await db.itemsStore.removeSharedLink(itemId, userId, shareName);
+      return h.redirect(`/items/${itemId}?info=share_deleted`);
     },
   },
 

@@ -23,6 +23,8 @@ export const routes = [
     { method: 'GET', path: '/my-categories', config: mainController.myCategories },
     { method: 'GET', path: '/my-items', config: mainController.myItems },
     { method: 'GET', path: '/items/{id}', config: mainController.item },
+    { method: 'GET', path: '/shared/invalid', config: mainController.sharedLinkInvalid },
+    { method: 'GET', path: '/shared/{id}', config: mainController.sharedItem },
 
     // account pages
     { method: 'GET', path: '/login', config: accountController.login },
@@ -41,6 +43,8 @@ export const routes = [
     { method: 'POST', path: '/items/create-item', config: actionsController.createItem },
     { method: 'POST', path: '/items/{id}/edit', config: actionsController.editItem },
     { method: 'GET', path: '/items/{id}/delete', config: actionsController.deleteItem },
+    { method: 'POST', path: '/items/{id}/share', config: actionsController.createItemShare },
+    { method: 'GET', path: '/items/{id}/share/{name}/delete', config: actionsController.deleteItemShare },
     { method: 'POST', path: '/collections/create', config: actionsController.createCollection },
     { method: 'POST', path: '/collections/{id}/edit', config: actionsController.editCollection },
     { method: 'GET', path: '/collections/{id}/delete', config: actionsController.deleteCollection },

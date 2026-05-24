@@ -30,6 +30,26 @@ export function signAccessTokenForUser(user) {
   );
   }
 
+/** Guest share link JWT (`user_id`, `item_id`, `access: guest`). */
+export function signShareTokenForItem({ userId, itemId }) {
+  return jwt.sign(
+    { user_id: userId, item_id: itemId, access: "guest" },
+    process.env.JWT_SECRET
+  );
+}
+
+/** Returns decoded share payload or `null` when invalid/expired. */
+export function verifyShareToken(token) {
+  if (!token || typeof token !== "string") return null;
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET, {
+      algorithms: ["HS256"],
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function signRefreshTokenForUser(user) {
   const isAdmin = user.metadata?.isAdmin ?? user.isAdmin;
   return jwt.sign(
