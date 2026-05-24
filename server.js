@@ -4,7 +4,7 @@ import path from "path";
 import { apiRoutes } from "./api-routes.js";
 import { routes } from "./routes.js";
 import { db } from "./src/models/db.js";
-import { configureSessionAuth } from "./src/lib/hapi-auth.js";
+import { configureJwtAuth } from "./src/lib/hapi-auth.js";
 import { registerHapiPlugins } from "./src/lib/hapi-plugins.js";
 import { registerStaticRoutes } from "./src/lib/hapi-static-routes.js";
 import { configureViews } from "./src/lib/hapi-views.js";
@@ -41,7 +41,7 @@ const init = async () => {
   // Register Hapi plugins, configure views and session authentication
   await registerHapiPlugins(server);
   configureViews(server, __dirname);
-  await configureSessionAuth(server);
+  await configureJwtAuth(server);
 
   // Register routes
   server.route(routes);

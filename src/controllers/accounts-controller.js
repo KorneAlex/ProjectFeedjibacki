@@ -1,4 +1,5 @@
 // db_flow_3: uses the initialized stores in controller functions
+import { createRequire } from "module";
 import { db } from "../models/db.js";
 import { signupSchema } from "../models/joi-schema.js";
 import {
@@ -8,8 +9,11 @@ import {
   clearJwtRefreshCookie,
   signAccessTokenForUser,
   signRefreshTokenForUser,
-  clearSessionCookie,
+  getRefreshTokenFromRequest,
 } from "../lib/hapi-auth.js";
+
+const require = createRequire(import.meta.url);
+const jwt = require("jsonwebtoken");
 
 export const accountController = {
   signup: {
@@ -90,11 +94,6 @@ export const accountController = {
         });
       }
       try {
-      request.cookieAuth.set({ id: user._id.toString() });
-      } catch (err) {
-        // console.error("Error setting cookie:", err);
-      }
-      try {
         const token = signAccessTokenForUser(user);
         const refreshToken = signRefreshTokenForUser(user);
         return h
@@ -109,7 +108,37 @@ export const accountController = {
 
   logout: {
     handler: (request, h) => {
-      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie(), clearSessionCookie()]);
+      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie()]);
     },
   },
+
+  refreshToken: {
+    auth: false,
+    handler: async (request, h) => {
+      const refreshToken = getRefreshTokenFromRequest(request);
+      if (!refreshToken) {
+        return h.response({ error: "No refresh token provided" }).code(401);
+      }
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await db.usersStore.getUserById(decoded.id);
+        if (!user) {
+          return h.response({ error: "User not found" }).code(404);
+        }
+        const newAccessToken = signAccessTokenForUser(user);
+        const newRefreshToken = signRefreshTokenForUser(user);
+        const next = request.query.next;
+        const redirectTo =
+          typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+            ? next
+            : "/";
+        return h
+          .redirect(redirectTo)
+          .header("Set-Cookie", [jwtAccessCookieAttrs(newAccessToken), jwtRefreshCookieAttrs(newRefreshToken)]);
+      } catch (err) {
+        console.error("Error refreshing token:", err);
+        return h.response({ error: "Invalid refresh token" }).code(401);
+      }
+    },
+  }
 };

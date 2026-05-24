@@ -27,6 +27,7 @@ export const routes = [
     // account pages
     { method: 'GET', path: '/login', config: accountController.login },
     { method: 'GET', path: '/signup', config: accountController.signup },
+    { method: 'GET', path: '/auth/refresh', config: accountController.refreshToken },
     
     // account actions
     { method: 'POST', path: '/signup/submit', config: accountController.signupSubmit },
