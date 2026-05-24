@@ -80,6 +80,14 @@ export const mainController = {
       viewData.infoMessage = "Please enter an API key.";
       viewData.infoClass = "has-text-danger";
     }
+    if (request.query.password === "success") {
+      viewData.passwordMessage = "Password changed successfully!";
+      viewData.passwordClass = "has-text-success";
+    }
+    if (request.query.password === "wrong") {
+      viewData.passwordMessage = "Current password is incorrect.";
+      viewData.passwordClass = "has-text-danger";
+    }
     return h.view("./pages/account", { title: "Account", viewData: viewData });
     },
   },

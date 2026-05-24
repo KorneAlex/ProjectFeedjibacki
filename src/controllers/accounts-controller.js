@@ -1,7 +1,8 @@
 // db_flow_3: uses the initialized stores in controller functions
 import { createRequire } from "module";
 import { db } from "../models/db.js";
-import { signupSchema } from "../models/joi-schema.js";
+import { signupSchema, changePasswordFormSchema } from "../models/joi-schema.js";
+import { comparePassword } from "../lib/password.js";
 import {
   jwtAccessCookieAttrs,
   clearJwtAccessCookie,
@@ -109,6 +110,48 @@ export const accountController = {
   logout: {
     handler: (request, h) => {
       return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie()]);
+    },
+  },
+
+  changePassword: {
+    auth: "jwt",
+    validate: {
+      payload: changePasswordFormSchema,
+      failAction: async (request, h, err) => {
+        const isAdmin = await db.usersStore.userIsAdmin(
+          request.auth.credentials._id,
+        );
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          userIsAdmin: isAdmin,
+          mapsApiKey: await db.usersStore.getApiKeyByUserId(
+            request.auth.credentials._id,
+          ),
+          username: request.auth.credentials.username,
+          passwordMessage: err.details[0].message,
+          passwordClass: "has-text-danger",
+        };
+        return h
+          .view("./pages/account", { title: "Account", viewData })
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id;
+      const { currentPassword, password } = request.payload;
+      const user = await db.usersStore.getUserDataById(userId);
+      if (!user?.metadata?.password) {
+        return h.redirect("/account?password=wrong");
+      }
+      const valid = await comparePassword(
+        currentPassword,
+        user.metadata.password,
+      );
+      if (!valid) {
+        return h.redirect("/account?password=wrong");
+      }
+      await db.usersStore.updateUserById(userId, { password });
+      return h.redirect("/account?password=success");
     },
   },
 

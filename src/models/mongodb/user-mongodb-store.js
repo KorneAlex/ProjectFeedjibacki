@@ -1,5 +1,6 @@
 import { User } from "./db.js";
 import { signupSchema } from "../joi-schema.js";
+import { comparePassword, hashPassword } from "../../lib/password.js";
 
 //AI Help
 function mapUpdateToNested(updateData) {
@@ -75,7 +76,7 @@ export const usersStore = {
       metadata: {
         username: value.username,
         email: value.email,
-        password: value.password,
+        password: await hashPassword(value.password),
         isAdmin: false,
         time: {
           created: new Date().toISOString(),
@@ -118,6 +119,9 @@ export const usersStore = {
     delete updateData._id;
     delete updateData.passwordRepeat;
     delete updateData.passwordRepeat;
+    if (updateData.password !== undefined) {
+      updateData.password = await hashPassword(updateData.password);
+    }
     const setFields = mapUpdateToNested(updateData);
     if (Object.keys(setFields).length === 0) {
       return null;
@@ -165,10 +169,11 @@ export const usersStore = {
 
   async credentialsCheck(email, username, pass) {
     const user = await this.userExist(email, username);
-    if (user && user.metadata?.password === pass) {
-      return user;
+    if (!user?.metadata?.password) {
+      return null;
     }
-    return null;
+    const valid = await comparePassword(pass, user.metadata.password);
+    return valid ? user : null;
   },
 
   async userIsAdmin(uid) {

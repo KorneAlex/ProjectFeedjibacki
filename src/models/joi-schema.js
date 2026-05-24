@@ -61,7 +61,23 @@ export const userUpdateSchema = Joi.object({
     "object.needUpdateField":
       "Provide username, or email, or both password and passwordRepeat",
   })
-  .label("UserUpdate");
+  .label("UserUpdate")
+
+/** POST `/account/change-password` — logged-in user changes their own password. */
+export const changePasswordFormSchema = Joi.object({
+  currentPassword: Joi.string().min(6).max(30).required(),
+  password: Joi.string().min(6).max(30).required(),
+  passwordRepeat: Joi.string().min(6).max(30).required(),
+})
+  .custom((value, helpers) => {
+    if (value.password !== value.passwordRepeat) {
+      return helpers.error("object.passwordMismatch");
+    }
+    return value;
+  })
+  .messages({
+    "object.passwordMismatch": "Passwords do not match",
+  });
 
 /** POST `/user/{uid}/edit` — admin edits username, email, and admin flag (no password). */
 export const adminUserEditFormSchema = Joi.object({

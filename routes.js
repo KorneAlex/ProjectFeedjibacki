@@ -32,6 +32,7 @@ export const routes = [
     // account actions
     { method: 'POST', path: '/signup/submit', config: accountController.signupSubmit },
     { method: 'POST', path: '/login/submit', config: accountController.loginSubmit },
+    { method: 'POST', path: '/account/change-password', config: accountController.changePassword },
     { method: 'GET', path: '/logout', config: accountController.logout },
     
     // actions
