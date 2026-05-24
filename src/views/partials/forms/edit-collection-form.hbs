@@ -1,16 +1,17 @@
-<form
-  class="box mb-5"
-  action="/collections/{{viewData.collection._id}}/edit"
-  method="POST"
-  name="edit-collection-form"
-  autocomplete="on"
->
+<div class="box mb-5">
   <h2 class="title is-5 mb-2">Edit collection</h2>
 
   {{#if viewData.infoMessage}}
     <p class="help {{viewData.infoClass}} mb-4">{{viewData.infoMessage}}</p>
   {{/if}}
 
+  <form
+    id="edit-collection-form"
+    action="/collections/{{viewData.collection._id}}/edit"
+    method="POST"
+    name="edit-collection-form"
+    autocomplete="on"
+  >
   <div class="field">
     <label class="label" for="edit-collection-name">Name</label>
     <div class="control">
@@ -59,13 +60,24 @@
   {{else}}
     <p class="help mb-4">You have no items yet. Create items on <a href="/my-items">My items</a> first.</p>
   {{/if}}
+  </form>
 
-  <div class="field is-grouped">
+  {{> forms/upload-image-field
+    inputId="edit-collection-imagefile"
+    label="Upload cover"
+    helpText="PNG or JPEG, max 5 MB. Uploads immediately and sets the cover image."
+    uploadEndpoint="/collections/uploadImage"
+    uploadEntityId=viewData.collection._id
+    formClass="edit-collection-cover__upload"
+  }}
+
+  <div class="field is-grouped mt-5">
     <div class="control">
-      <button class="button is-primary" type="submit">Save changes</button>
+      <button class="button is-primary" type="submit" form="edit-collection-form">Save changes</button>
     </div>
     <div class="control">
       <a class="button is-light" href="/collections/{{viewData.collection._id}}">Cancel</a>
     </div>
   </div>
-</form>
+</div>
+

@@ -16,6 +16,7 @@
         <div class="box mb-5">
           <div class="is-flex is-justify-content-space-between is-align-items-flex-start is-flex-wrap-wrap gap-2 mb-4">
             <div>
+              <h2 class="title is-4 mb-2">{{viewData.collection.name}}</h2>
               <p class="has-text-grey is-size-7 mb-1">Privacy: {{viewData.collection.privacy}}</p>
               <p class="has-text-grey is-size-7">Created: {{viewData.collection.metadata.time.created}}</p>
               {{#if viewData.collection.metadata.time.edited}}
@@ -30,13 +31,11 @@
 
           {{#if viewData.collection.items.length}}
             <h2 class="title is-6 mb-3">Items ({{viewData.collection.itemCount}})</h2>
-            <ul class="collection-detail-items">
+            <div class="items-grid">
               {{#each viewData.collection.items}}
-                <li>
-                  <a href="/items/{{this._id}}">{{this.name}}</a>
-                </li>
+                {{> lists/item-tile }}
               {{/each}}
-            </ul>
+            </div>
           {{else}}
             <p class="has-text-grey">This collection has no items yet.</p>
           {{/if}}
@@ -48,4 +47,4 @@
   </div>
 </div>
 
-// TODO: add Shared woth you collections section
+{{!-- TODO: add Shared woth you collections section --}}

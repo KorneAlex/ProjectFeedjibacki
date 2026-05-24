@@ -142,7 +142,6 @@ export const createItemFormSchema = Joi.object({
     .optional(),
   comments_owner: Joi.string().max(500).allow("").optional(),
   shop: Joi.string().max(200).allow("").optional(),
-  img_cover: Joi.string().max(2048).allow("").optional(),
   imagefile: Joi.any().optional(),
   access: Joi.string().valid("private", "public", "shared").optional(),
 });
@@ -242,10 +241,15 @@ export const editCollectionFormSchema = Joi.object({
   item_ids: collectionItemIdsField,
 });
 
+const collectionImgSchema = Joi.object({
+  cover: Joi.string().max(2048).allow("").optional(),
+});
+
 const collectionDataSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
   privacy: Joi.string().valid("private", "shared").required(),
   items: Joi.array().items(Joi.string()).optional(),
+  img: collectionImgSchema.optional(),
 });
 
 const collectionMetadataSchema = Joi.object({

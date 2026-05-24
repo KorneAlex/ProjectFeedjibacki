@@ -8,15 +8,3 @@
     {{> forms/upload-image-form }}
   </div>
 </div>
-<script>
-  (function () {
-    const fileInput = document.querySelector(".card .file-input");
-    if (!fileInput) return;
-    fileInput.onchange = () => {
-      if (fileInput.files.length > 0) {
-        const fileName = fileInput.closest(".file")?.querySelector(".file-name");
-        if (fileName) fileName.textContent = fileInput.files[0].name;
-      }
-    };
-  })();
-</script>

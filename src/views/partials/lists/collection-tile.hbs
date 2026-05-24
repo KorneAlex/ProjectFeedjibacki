@@ -1,0 +1,18 @@
+<article class="collection-tile">
+  <a class="collection-tile__cover-link" href="/collections/{{this._id}}" title="View {{this.name}}">
+    <figure class="collection-tile__cover">
+      {{#if this.cover}}
+        <img src="{{this.cover}}" alt="Cover for {{this.name}}" loading="lazy" />
+      {{else}}
+        <span class="collection-tile__cover-placeholder has-text-grey">No image</span>
+      {{/if}}
+    </figure>
+  </a>
+  <h3 class="collection-tile__title">
+    <a href="/collections/{{this._id}}">{{this.name}}</a>
+  </h3>
+  <p class="collection-tile__meta">{{this.itemCount}} item(s) · {{this.privacy}}</p>
+  <div class="collection-tile__actions">
+    <a class="button is-small is-primary is-light" href="/collections/{{this._id}}?edit=1">Edit</a>
+  </div>
+</article>

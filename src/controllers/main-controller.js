@@ -328,6 +328,10 @@ export const mainController = {
         viewData.infoMessage = "Collection updated successfully.";
         viewData.infoClass = "has-text-success";
       }
+      if (request.query.info === "image_uploaded") {
+        viewData.infoMessage = "Cover image uploaded successfully.";
+        viewData.infoClass = "has-text-success";
+      }
 
       return h.view("./pages/collection", {
         title: collection.name,

@@ -158,6 +158,9 @@ const collectionSchema = new mongoose.Schema({
       default: "private",
     },
     items: { type: [String], default: [] },
+    img: {
+      cover: { type: String, default: "" },
+    },
   },
 });
 

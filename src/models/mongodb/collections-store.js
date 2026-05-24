@@ -26,7 +26,7 @@ function normalizeIdList(ids) {
  * Loads item summaries for ids listed on a collection.
  * Skips invalid ObjectIds and items not owned by `ownerId`.
  *
- * @returns {{ _id: string, name: string }[]}
+ * @returns {{ _id: string, name: string, data: object }[]}
  */
 async function resolveCollectionItems(itemIds, ownerId) {
   const items = [];
@@ -37,23 +37,46 @@ async function resolveCollectionItems(itemIds, ownerId) {
       "metadata.owner": ownerId,
     }).lean();
     if (!item) continue;
+    const name = item.data?.name ?? "Unnamed";
     items.push({
       _id: item._id.toString(),
-      name: item.data?.name ?? "Unnamed",
+      name,
+      data: {
+        name,
+        img: { cover: item.data?.img?.cover ?? "" },
+        rating: { owner: item.data?.rating?.owner ?? null },
+      },
     });
   }
   return items;
 }
 
+/** First non-empty item cover in collection order (display fallback only). */
+function firstItemCover(items) {
+  for (const item of items) {
+    const cover = (item.data?.img?.cover ?? "").trim();
+    if (cover) return cover;
+  }
+  return "";
+}
+
 /** Shape passed to Handlebars (`collection.hbs`, `my-collections.hbs`). */
 function toCollectionView(collection, items) {
+  const name = collection.data?.name ?? "";
+  const storedCover = (collection.data?.img?.cover ?? "").trim();
   return {
     ...collection,
     _id: collection._id.toString(),
-    name: collection.data?.name ?? "",
+    name,
     privacy: collection.data?.privacy ?? "private",
+    cover: storedCover || firstItemCover(items),
     itemCount: items.length,
     items,
+    data: {
+      ...collection.data,
+      name,
+      img: { cover: storedCover },
+    },
   };
 }
 
@@ -168,6 +191,7 @@ export const collectionsStore = {
         name: value.name,
         privacy: value.privacy === "shared" ? "shared" : "private",
         items: validItemIds,
+        img: { cover: "" },
       },
     };
 
@@ -225,6 +249,32 @@ export const collectionsStore = {
       },
     );
 
+    return await collectionsStore.getCollectionForUser(collectionId, userId);
+  },
+
+  /**
+   * Sets `data.img.cover` for an owned collection (e.g. after Cloudinary upload).
+   *
+   * @param {string} collectionId
+   * @param {string} userId
+   * @param {string} coverUrl
+   * @returns {object|null} Updated view object, or null if not found / not owner.
+   */
+  updateCollectionCoverUrl: async (collectionId, userId, coverUrl) => {
+    if (!mongoose.Types.ObjectId.isValid(collectionId)) return null;
+    if (!(await collectionsStore.getCollectionForUser(collectionId, userId))) {
+      return null;
+    }
+
+    await Collection.updateOne(
+      { _id: collectionId },
+      {
+        $set: {
+          "data.img.cover": coverUrl,
+          "metadata.time.edited": new Date().toISOString(),
+        },
+      },
+    );
     return await collectionsStore.getCollectionForUser(collectionId, userId);
   },
 

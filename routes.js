@@ -48,6 +48,7 @@ export const routes = [
     // points
     { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },
     { method: 'POST', path: '/items/uploadImage', config: actionsController.uploadItemImage },
+    { method: 'POST', path: '/collections/uploadImage', config: actionsController.uploadCollectionImage },
 
     // test
     { method: 'GET', path: '/test', config: testController.test },

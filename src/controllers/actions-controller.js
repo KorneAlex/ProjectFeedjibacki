@@ -113,7 +113,6 @@ async function buildItemDataFromPayload(payload, userId, existing) {
     rating,
     comments_owner,
     shop,
-    img_cover,
     access,
   } = payload;
 
@@ -152,10 +151,9 @@ async function buildItemDataFromPayload(payload, userId, existing) {
         others: existing?.data?.comments?.others ?? [],
       },
       shop: (shop ?? "").trim(),
-      img: {
-        cover: existing ? (img_cover ?? "").trim() : "",
-        pictures: existing?.data?.img?.pictures ?? [],
-      },
+      ...(existing
+        ? {}
+        : { img: { cover: "", pictures: [] } }),
     },
   };
 }
@@ -581,6 +579,51 @@ export const actionsController = {
         const url = await uploadImage(file, "feedjibacki/items", itemId, "item");
         if (url) {
           await db.itemsStore.updateItemCoverUrl(itemId, userId, url);
+        }
+      } catch (err) {
+        console.error(err);
+        await fs.unlink(file.path).catch(() => {});
+      }
+      return h.redirect(redirectBase);
+    },
+  },
+
+  uploadCollectionImage: {
+    auth: "jwt",
+    payload: imageUploadPayload,
+    handler: async (request, h) => {
+      const collectionId = request.query.id;
+      const userId = request.auth.credentials._id.toString();
+      const redirectBase = collectionId
+        ? `/collections/${collectionId}?edit=1&info=image_uploaded`
+        : "/my-collections";
+      const file = request.payload?.imagefile;
+      if (!file?.path) {
+        return h.redirect(redirectBase);
+      }
+
+      const existing = await db.collectionsStore.getCollectionForUser(
+        collectionId,
+        userId,
+      );
+      if (!existing) {
+        await fs.unlink(file.path).catch(() => {});
+        return h.redirect("/my-collections");
+      }
+
+      try {
+        const url = await uploadImage(
+          file,
+          "feedjibacki/collections",
+          collectionId,
+          "collection",
+        );
+        if (url) {
+          await db.collectionsStore.updateCollectionCoverUrl(
+            collectionId,
+            userId,
+            url,
+          );
         }
       } catch (err) {
         console.error(err);
