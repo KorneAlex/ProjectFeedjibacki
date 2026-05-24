@@ -173,6 +173,21 @@ export const itemsStore = {
    *
    * @returns {object|null} The item document before delete, or null if not found / not owner.
    */
+  /** Returns a map of user id → number of active (non-deleted) items owned by that user. */
+  getItemCountByOwner: async () => {
+    const rows = await Item.aggregate([
+      { $match: activeItemFilter },
+      { $group: { _id: "$metadata.owner", count: { $sum: 1 } } },
+    ]);
+    const counts = {};
+    for (const row of rows) {
+      if (row._id != null) {
+        counts[String(row._id)] = row.count;
+      }
+    }
+    return counts;
+  },
+
   deleteItemById: async (itemId, userId) => {
     if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
 

@@ -151,12 +151,24 @@ export const mainController = {
           return h.redirect("/");
         }
         allUsers = await db.usersStore.getAllUsers();
+        const itemCountByOwner = await db.itemsStore.getItemCountByOwner();
+        const users = allUsers.map((user) => {
+          const userId = user._id.toString();
+          const indexedCount = user.data?.items?.length ?? 0;
+          const feedbackCount = Object.hasOwn(itemCountByOwner, userId)
+            ? itemCountByOwner[userId]
+            : indexedCount;
+          return {
+            ...user,
+            feedbackCount,
+          };
+        });
         const viewData = {
           title: "Users",
           isAuthenticated: request.auth.isAuthenticated,
           userIsAdmin: isAdmin,
           username: request.auth.credentials.username,
-          users: allUsers,
+          users,
         };
         if (request.query.info === "deleted") {
           viewData.message = "The user has been deleted.";

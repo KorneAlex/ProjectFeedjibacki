@@ -8,9 +8,6 @@
   </div>
   {{/if}}
   <div class="navbar-brand">
-    {{!-- <a class="navbar-item" href="/">
-      {{> svg/logo}}
-    </a> --}}
     <div class="navbar-item" style="width: 4.5rem;">{{> interface/left-pane}}</div>
     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
       <span aria-hidden="true"></span>
@@ -22,45 +19,8 @@
   <div id="navbarBasicExample" class="navbar-menu">
     <div class="navbar-start">
       <a href="/" class="navbar-item" style="z-index: 1000;">
-        {{!-- {{> svg/logo-text}} --}}
         {{> svg/feedjibacki}}
       </a>
-      {{#if viewData.isAuthenticated}}
-      {{!-- <a href="/map" class="navbar-item">
-        Feedback map
-      </a> --}}
-      {{#if viewData.userIsAdmin }}
-      <a href="/users" class="navbar-item">
-        Users
-      </a>
-      {{/if}}
-      {{/if}}
-      <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link">
-          More
-        </a>
-
-        <div class="navbar-dropdown">
-          <a href="/about" class="navbar-item">
-            About
-          </a>
-          <hr class="navbar-divider">
-          {{!-- https://stackoverflow.com/questions/15551779/open-link-in-new-tab-or-window --}}
-          <a target="_blank" rel="noopener noreferrer"href="https://github.com/KorneAlex/Feedjibacki/issues" class="navbar-item">
-            Report an issue
-          </a>
-        </div>
-      </div>
-      {{!-- {{#unless viewData.title}}
-      <div>
-        <a href="/signup" class="button is-primary ml-4">
-          Sign up
-        </a>
-        <a href="/login" class="button is-light ml-2">
-          Log in
-        </a>
-      </div>
-      {{/unless}} --}}
     </div>
 
     <div class="navbar-end">

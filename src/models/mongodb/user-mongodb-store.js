@@ -122,6 +122,19 @@ export const usersStore = {
     if (Object.keys(setFields).length === 0) {
       return null;
     }
+    if (updateData.isAdmin !== undefined) {
+      const existing = await User.findById(uid).lean();
+      if (!existing) {
+        return null;
+      }
+      const wasAdmin = !!existing.metadata?.isAdmin;
+      const willBeAdmin = !!updateData.isAdmin;
+      if (willBeAdmin && !wasAdmin) {
+        setFields["metadata.time.admin_status_since"] = new Date().toISOString();
+      } else if (!willBeAdmin && wasAdmin) {
+        setFields["metadata.time.admin_status_since"] = "";
+      }
+    }
     setFields["metadata.time.edited"] = new Date().toISOString();
     const res = await User.updateOne({ _id: uid }, { $set: setFields });
     if (res.matchedCount === 0) {
