@@ -20,12 +20,9 @@
               <code class="is-size-7">{{viewData.userId}}</code>
             </p>
             {{#if viewData.userData.metadata.isAdmin}}
-              <span class="tag is-primary is-light">Administrator</span>
+              <span class="tag is-primary is-dark">Administrator</span>
             {{else}}
-              <span class="tag is-light">Standard account</span>
-            {{/if}}
-            {{#if viewData.userData.__v}}
-              <span class="tag is-info is-light ml-1">v{{viewData.userData.__v}}</span>
+              <span class="tag is-dark">Standard account</span>
             {{/if}}
           </div>
           <div class="buttons">
@@ -40,10 +37,10 @@
 
         <h2 class="title is-5 mb-4">Overview</h2>
         <div class="collections-grid mb-5">
-          <article class="collection-tile">
+          {{!-- <article class="collection-tile">
             <h3 class="collection-tile__title">Feedback points</h3>
             <p class="collection-tile__meta">{{viewData.counts.points}} point(s)</p>
-          </article>
+          </article> --}}
           <article class="collection-tile">
             <h3 class="collection-tile__title">Items</h3>
             <p class="collection-tile__meta">{{viewData.counts.items}} item(s)</p>
@@ -76,9 +73,9 @@
                     <th class="has-text-grey">Admin</th>
                     <td>
                       {{#if viewData.userData.metadata.isAdmin}}
-                        <span class="tag is-success is-light">Yes</span>
+                        <span class="tag is-success is-dark">Yes</span>
                       {{else}}
-                        <span class="tag is-light">No</span>
+                        <span class="tag is-dark">No</span>
                       {{/if}}
                     </td>
                   </tr>
@@ -86,7 +83,7 @@
                     <th class="has-text-grey">Map API key</th>
                     <td>
                       {{#if viewData.hasMapApiKey}}
-                        <span class="tag is-success is-light">Configured</span>
+                        <span class="tag is-success is-dark">Configured</span>
                       {{else}}
                         <span class="has-text-grey">Not set</span>
                       {{/if}}

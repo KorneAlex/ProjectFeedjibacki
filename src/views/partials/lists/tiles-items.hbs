@@ -6,27 +6,7 @@
   <div class="items-grid">
     {{> lists/add-item-tile }}
     {{#each viewData.items}}
-      <article class="item-tile">
-        <a class="item-tile__cover-link" href="/items/{{this._id}}" title="View {{this.data.name}}">
-          <figure class="item-tile__cover">
-            {{#if this.data.img.cover}}
-              <img src="{{this.data.img.cover}}" alt="Cover for {{this.data.name}}" loading="lazy" />
-            {{else}}
-              <span class="item-tile__cover-placeholder has-text-grey">No image</span>
-            {{/if}}
-          </figure>
-        </a>
-        <h3 class="item-tile__title">
-          <a href="/items/{{this._id}}">{{this.data.name}}</a>
-        </h3>
-        <p class="item-tile__meta">
-          {{#if this.data.rating.owner}}
-            Rating: {{this.data.rating.owner}} / 100
-          {{else}}
-            <span class="has-text-grey">No rating yet</span>
-          {{/if}}
-        </p>
-      </article>
+      {{> lists/item-tile }}
     {{/each}}
   </div>
   {{#unless viewData.items.length}}
@@ -37,27 +17,7 @@
   <div class="items-grid">
     {{> lists/add-item-tile }}
     {{#each viewData.items}}
-      <article class="item-tile">
-        <a class="item-tile__cover-link" href="/items/{{this._id}}" title="View {{this.data.name}}">
-          <figure class="item-tile__cover">
-            {{#if this.data.img.cover}}
-              <img src="{{this.data.img.cover}}" alt="Cover for {{this.data.name}}" loading="lazy" />
-            {{else}}
-              <span class="item-tile__cover-placeholder has-text-grey">No image</span>
-            {{/if}}
-          </figure>
-        </a>
-        <h3 class="item-tile__title">
-          <a href="/items/{{this._id}}">{{this.data.name}}</a>
-        </h3>
-        <p class="item-tile__meta">
-          {{#if this.data.rating.owner}}
-            Rating: {{this.data.rating.owner}} / 100
-          {{else}}
-            <span class="has-text-grey">No rating yet</span>
-          {{/if}}
-        </p>
-      </article>
+      {{> lists/item-tile }}
     {{/each}}
   </div>
   {{#unless viewData.items.length}}

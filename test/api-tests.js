@@ -3,6 +3,7 @@ import { assert } from "chai";
 import { db } from "../src/models/db.js";
 import { testData as td } from "../test/data-for-tests.js";
 import { appService } from "../src/api/app-service.js";
+import { comparePassword } from "../src/lib/password.js";
 
 M.suite("API Service test", () => {
   M.describe("User API tests", () => {
@@ -33,7 +34,12 @@ M.suite("API Service test", () => {
       const payload = td[0].testUserUpdate;
       await appService.updateUserById(newUser._id.toString(), payload);
       const checkUser = await db.usersStore.getUserById(newUser._id.toString());
-      assert.equal(checkUser.password, payload.password);
+      assert.isTrue(
+        await comparePassword(
+          payload.password,
+          checkUser.metadata.password,
+        ),
+      );
     });
 
     M.it("4. Delete user", async () => {

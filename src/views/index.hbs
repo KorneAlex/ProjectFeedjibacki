@@ -3,13 +3,20 @@
     <h1 class="home-hero__title">Feedjibacki</h1>
     <p class="home-hero__subtitle">Your personal reviews for products you've bought and tried yourself</p>
     <p class="home-hero__tagline">Rate items, add categories, group them into collections, and leave notes — so when you forget whether you liked something, your own review is waiting for you.</p>
+
     {{#if viewData.isAuthenticated}}
+      <h2 class="home-cta__title">Ready to add or update a review?</h2>
       <div class="home-hero__actions">
-        <a href="/my-items" class="button">My items</a>
+        <a href="/my-items" class="button is-primary">My items</a>
         <a href="/my-collections" class="button is-light">My collections</a>
       </div>
     {{else}}
-      <a href="/signup" class="button">Get started — Sign up</a>
+      <h2 class="home-cta__title">Create an account and start your personal review log</h2>
+      <div class="home-hero__actions">
+        <a href="/signup" class="button is-primary">Sign up</a>
+        <span class="home-hero__sep">or</span>
+        <a href="/login" class="button is-light">Log in</a>
+      </div>
     {{/if}}
   </div>
 </section>
@@ -33,7 +40,7 @@
     </div>
   </div>
 
-  <section class="home-cta">
+  {{!-- <section class="home-cta">
     {{#if viewData.isAuthenticated}}
       <h2 class="home-cta__title">Ready to add or update a review?</h2>
       <a href="/my-items" class="button is-primary">My items</a>
@@ -44,5 +51,5 @@
       <span class="home-cta__sep">or</span>
       <a href="/login" class="button is-light">Log in</a>
     {{/if}}
-  </section>
+  </section> --}}
 </div>

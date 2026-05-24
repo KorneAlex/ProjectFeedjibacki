@@ -1,0 +1,116 @@
+{{!--
+  Reusable cover / image file picker.
+
+  Hash params:
+    inputId (required) — unique id for the file input
+    label — field label text
+    helpText — optional help below the control
+    uploadEndpoint — POST path for immediate upload (e.g. /items/uploadImage)
+    uploadEntityId — document id appended as ?id= (pass as hash lookup, not embedded in a string)
+    layout — "grouped" (default with uploadEndpoint), "inline", or "embedded" (inside parent form)
+    formClass — extra class on the upload form
+    buttonClass — submit button classes (defaults vary by layout)
+--}}
+{{#if uploadEndpoint}}
+  {{#if (eq layout "inline")}}
+<form action="{{uploadEndpoint}}?id={{uploadEntityId}}" method="POST" enctype="multipart/form-data"{{#if formClass}} class="{{formClass}}"{{/if}}>
+  <div class="file has-name is-fullwidth upload-image-form__picker">
+    <label class="file-label">
+      <input
+        id="{{inputId}}"
+        class="file-input"
+        name="imagefile"
+        type="file"
+        accept="image/png, image/jpeg"
+      >
+      <span class="file-cta">
+        <span class="file-icon">
+          <i class="fas fa-upload"></i>
+        </span>
+        <span class="file-label">Choose a file…</span>
+      </span>
+      <span class="file-name"></span>
+    </label>
+    <button type="submit" class="{{#if buttonClass}}{{buttonClass}}{{else}}button is-info{{/if}}">Upload</button>
+  </div>
+</form>
+  {{else}}
+<div class="field upload-image-field">
+  {{#if label}}
+  <label class="label" for="{{inputId}}">{{label}}</label>
+  {{/if}}
+  <form action="{{uploadEndpoint}}?id={{uploadEntityId}}" method="POST" enctype="multipart/form-data"{{#if formClass}} class="{{formClass}}"{{/if}}>
+    <div class="field is-grouped is-grouped-multiline mb-0">
+      <div class="control is-expanded">
+        <div class="file has-name is-fullwidth">
+          <label class="file-label">
+            <input
+              id="{{inputId}}"
+              class="file-input"
+              name="imagefile"
+              type="file"
+              accept="image/png, image/jpeg"
+            >
+            <span class="file-cta">
+              <span class="file-icon">
+                <i class="fas fa-upload"></i>
+              </span>
+              <span class="file-label">Choose a file…</span>
+            </span>
+            <span class="file-name"></span>
+          </label>
+        </div>
+      </div>
+      <div class="control">
+        <button type="submit" class="{{#if buttonClass}}{{buttonClass}}{{else}}button is-primary is-light{{/if}}">Upload</button>
+      </div>
+    </div>
+  </form>
+  {{#if helpText}}
+  <p class="help">{{helpText}}</p>
+  {{/if}}
+</div>
+  {{/if}}
+{{else}}
+<div class="field upload-image-field">
+  {{#if label}}
+  <label class="label" for="{{inputId}}">{{label}}</label>
+  {{/if}}
+  <div class="control">
+    <div class="file has-name is-fullwidth">
+      <label class="file-label">
+        <input
+          id="{{inputId}}"
+          class="file-input"
+          name="imagefile"
+          type="file"
+          accept="image/png, image/jpeg"
+        >
+        <span class="file-cta">
+          <span class="file-icon">
+            <i class="fas fa-upload"></i>
+          </span>
+          <span class="file-label">Choose a file…</span>
+        </span>
+        <span class="file-name"></span>
+      </label>
+    </div>
+  </div>
+  {{#if helpText}}
+  <p class="help">{{helpText}}</p>
+  {{/if}}
+</div>
+{{/if}}
+
+<script>
+  (function () {
+    const fileInput = document.getElementById("{{inputId}}");
+    if (!fileInput) return;
+    fileInput.addEventListener("change", function () {
+      if (fileInput.files.length > 0) {
+        const fileName = fileInput.closest(".file")?.querySelector(".file-name");
+        if (fileName) fileName.textContent = fileInput.files[0].name;
+      }
+    });
+  })();
+</script>

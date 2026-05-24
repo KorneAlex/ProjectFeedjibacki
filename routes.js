@@ -23,14 +23,18 @@ export const routes = [
     { method: 'GET', path: '/my-categories', config: mainController.myCategories },
     { method: 'GET', path: '/my-items', config: mainController.myItems },
     { method: 'GET', path: '/items/{id}', config: mainController.item },
+    { method: 'GET', path: '/shared/invalid', config: mainController.sharedLinkInvalid },
+    { method: 'GET', path: '/shared/{id}', config: mainController.sharedItem },
 
     // account pages
     { method: 'GET', path: '/login', config: accountController.login },
     { method: 'GET', path: '/signup', config: accountController.signup },
+    { method: 'GET', path: '/auth/refresh', config: accountController.refreshToken },
     
     // account actions
     { method: 'POST', path: '/signup/submit', config: accountController.signupSubmit },
     { method: 'POST', path: '/login/submit', config: accountController.loginSubmit },
+    { method: 'POST', path: '/account/change-password', config: accountController.changePassword },
     { method: 'GET', path: '/logout', config: accountController.logout },
     
     // actions
@@ -39,6 +43,8 @@ export const routes = [
     { method: 'POST', path: '/items/create-item', config: actionsController.createItem },
     { method: 'POST', path: '/items/{id}/edit', config: actionsController.editItem },
     { method: 'GET', path: '/items/{id}/delete', config: actionsController.deleteItem },
+    { method: 'POST', path: '/items/{id}/share', config: actionsController.createItemShare },
+    { method: 'GET', path: '/items/{id}/share/{name}/delete', config: actionsController.deleteItemShare },
     { method: 'POST', path: '/collections/create', config: actionsController.createCollection },
     { method: 'POST', path: '/collections/{id}/edit', config: actionsController.editCollection },
     { method: 'GET', path: '/collections/{id}/delete', config: actionsController.deleteCollection },
@@ -46,6 +52,7 @@ export const routes = [
     // points
     { method: 'POST', path: '/point/uploadImage', config: actionsController.uploadPointImage },
     { method: 'POST', path: '/items/uploadImage', config: actionsController.uploadItemImage },
+    { method: 'POST', path: '/collections/uploadImage', config: actionsController.uploadCollectionImage },
 
     // test
     { method: 'GET', path: '/test', config: testController.test },

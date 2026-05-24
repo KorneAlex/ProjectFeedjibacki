@@ -1,5 +1,6 @@
 import { Item } from "./db.js";
 import mongoose from "mongoose";
+import { verifyShareToken } from "../../lib/hapi-auth.js";
 
 /** Excludes soft-deleted items (`metadata.time.deleted` set). */
 const activeItemFilter = {
@@ -80,6 +81,103 @@ export const itemsStore = {
     if (access === "public") return item;
 
     return null;
+  },
+
+  /**
+   * Validates a guest share token for `/shared/{itemId}`.
+   *
+   * @returns {{ valid: true, item: object, shareLink: object } | { valid: false }}
+   */
+  validateSharedItemAccess: async (itemId, token) => {
+    const payload = verifyShareToken(token);
+    if (!payload || payload.access !== "guest") {
+      return { valid: false };
+    }
+    if (String(payload.item_id) !== String(itemId)) {
+      return { valid: false };
+    }
+
+    const item = await itemsStore.getItemById(itemId);
+    if (!item) {
+      return { valid: false };
+    }
+    if (String(payload.user_id) !== String(item.metadata?.owner ?? "")) {
+      return { valid: false };
+    }
+
+    const sharedLinks = item.metadata?.sharedLinks ?? [];
+    const shareLink = sharedLinks.find(
+      (entry) => entry.token === token && entry.name,
+    );
+    if (!shareLink) {
+      return { valid: false };
+    }
+
+    return { valid: true, item, shareLink };
+  },
+
+  /**
+   * Adds a named share link for an owned item and sets `metadata.access` to `shared`.
+   *
+   * @returns {{ item: object, shareLink: object } | null}
+   */
+  addSharedLink: async (itemId, userId, { name, token }) => {
+    if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
+
+    const existing = await itemsStore.getItemForUser(itemId, userId);
+    if (!existing) return null;
+
+    const sharedLinks = existing.metadata?.sharedLinks ?? [];
+    if (sharedLinks.some((entry) => entry.name === name)) {
+      return { duplicateName: true };
+    }
+
+    const shareLink = {
+      name,
+      sharedAt: new Date().toISOString(),
+      token,
+    };
+
+    await Item.updateOne(
+      { _id: itemId },
+      {
+        $set: {
+          "metadata.access": "shared",
+          "metadata.time.edited": new Date().toISOString(),
+        },
+        $push: { "metadata.sharedLinks": shareLink },
+      },
+    );
+
+    const item = await itemsStore.getItemForUser(itemId, userId);
+    return item ? { item, shareLink } : null;
+  },
+
+  /**
+   * Removes a named share link for an owned item.
+   *
+   * @returns {object|null} Updated lean item, or null if not found / not owner.
+   */
+  removeSharedLink: async (itemId, userId, shareName) => {
+    if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
+
+    const existing = await itemsStore.getItemForUser(itemId, userId);
+    if (!existing) return null;
+
+    const sharedLinks = existing.metadata?.sharedLinks ?? [];
+    if (!sharedLinks.some((entry) => entry.name === shareName)) {
+      return null;
+    }
+
+    await Item.updateOne(
+      { _id: itemId },
+      {
+        $pull: { "metadata.sharedLinks": { name: shareName } },
+        $set: { "metadata.time.edited": new Date().toISOString() },
+      },
+    );
+
+    return await itemsStore.getItemForUser(itemId, userId);
   },
 
   // Create   ==================================================================================================================================
@@ -173,6 +271,21 @@ export const itemsStore = {
    *
    * @returns {object|null} The item document before delete, or null if not found / not owner.
    */
+  /** Returns a map of user id → number of active (non-deleted) items owned by that user. */
+  getItemCountByOwner: async () => {
+    const rows = await Item.aggregate([
+      { $match: activeItemFilter },
+      { $group: { _id: "$metadata.owner", count: { $sum: 1 } } },
+    ]);
+    const counts = {};
+    for (const row of rows) {
+      if (row._id != null) {
+        counts[String(row._id)] = row.count;
+      }
+    }
+    return counts;
+  },
+
   deleteItemById: async (itemId, userId) => {
     if (!mongoose.Types.ObjectId.isValid(itemId)) return null;
 

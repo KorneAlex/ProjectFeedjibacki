@@ -6,8 +6,10 @@ import {
   createCollectionFormSchema,
   editCollectionFormSchema,
   adminUserEditFormSchema,
+  shareItemFormSchema,
 } from "../models/joi-schema.js";
 import { cloudinary } from "../lib/cloudinary.js";
+import { signShareTokenForItem } from "../lib/hapi-auth.js";
 
 /** Splits a comma-separated form field into trimmed non-empty strings. */
 function splitCommaList(str) {
@@ -113,7 +115,6 @@ async function buildItemDataFromPayload(payload, userId, existing) {
     rating,
     comments_owner,
     shop,
-    img_cover,
     access,
   } = payload;
 
@@ -152,10 +153,9 @@ async function buildItemDataFromPayload(payload, userId, existing) {
         others: existing?.data?.comments?.others ?? [],
       },
       shop: (shop ?? "").trim(),
-      img: {
-        cover: existing ? (img_cover ?? "").trim() : "",
-        pictures: existing?.data?.img?.pictures ?? [],
-      },
+      ...(existing
+        ? {}
+        : { img: { cover: "", pictures: [] } }),
     },
   };
 }
@@ -471,6 +471,60 @@ export const actionsController = {
     },
   },
 
+  createItemShare: {
+    auth: "jwt",
+    validate: {
+      payload: shareItemFormSchema,
+      failAction: async (request, h, err) => {
+        const itemId = request.params.id;
+        return h
+          .redirect(`/items/${itemId}?info=share_error&share_error=${encodeURIComponent(err.details[0].message)}`)
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id.toString();
+      const itemId = request.params.id;
+      const shareName = request.payload.share_name.trim();
+
+      const token = signShareTokenForItem({ userId, itemId });
+      const result = await db.itemsStore.addSharedLink(itemId, userId, {
+        name: shareName,
+        token,
+      });
+
+      if (!result) {
+        return h.redirect(`/items/${itemId}?info=share_error`);
+      }
+      if (result.duplicateName) {
+        return h.redirect(
+          `/items/${itemId}?info=share_error&share_error=${encodeURIComponent("A share link with this name already exists.")}`,
+        );
+      }
+
+      const baseUrl =
+        process.env.SERVICE_URL?.replace(/\/$/, "") ||
+        `${request.server.info.protocol}://${request.info.host}`;
+      const shareUrl = `${baseUrl}/shared/${itemId}?token=${encodeURIComponent(token)}`;
+
+      return h.redirect(
+        `/items/${itemId}?info=share_created&share_url=${encodeURIComponent(shareUrl)}`,
+      );
+    },
+  },
+
+  deleteItemShare: {
+    auth: "jwt",
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id.toString();
+      const itemId = request.params.id;
+      const shareName = decodeURIComponent(request.params.name);
+
+      await db.itemsStore.removeSharedLink(itemId, userId, shareName);
+      return h.redirect(`/items/${itemId}?info=share_deleted`);
+    },
+  },
+
   deleteItem: {
     auth: "jwt",
     handler: async (request, h) => {
@@ -581,6 +635,51 @@ export const actionsController = {
         const url = await uploadImage(file, "feedjibacki/items", itemId, "item");
         if (url) {
           await db.itemsStore.updateItemCoverUrl(itemId, userId, url);
+        }
+      } catch (err) {
+        console.error(err);
+        await fs.unlink(file.path).catch(() => {});
+      }
+      return h.redirect(redirectBase);
+    },
+  },
+
+  uploadCollectionImage: {
+    auth: "jwt",
+    payload: imageUploadPayload,
+    handler: async (request, h) => {
+      const collectionId = request.query.id;
+      const userId = request.auth.credentials._id.toString();
+      const redirectBase = collectionId
+        ? `/collections/${collectionId}?edit=1&info=image_uploaded`
+        : "/my-collections";
+      const file = request.payload?.imagefile;
+      if (!file?.path) {
+        return h.redirect(redirectBase);
+      }
+
+      const existing = await db.collectionsStore.getCollectionForUser(
+        collectionId,
+        userId,
+      );
+      if (!existing) {
+        await fs.unlink(file.path).catch(() => {});
+        return h.redirect("/my-collections");
+      }
+
+      try {
+        const url = await uploadImage(
+          file,
+          "feedjibacki/collections",
+          collectionId,
+          "collection",
+        );
+        if (url) {
+          await db.collectionsStore.updateCollectionCoverUrl(
+            collectionId,
+            userId,
+            url,
+          );
         }
       } catch (err) {
         console.error(err);

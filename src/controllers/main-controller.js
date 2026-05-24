@@ -80,6 +80,14 @@ export const mainController = {
       viewData.infoMessage = "Please enter an API key.";
       viewData.infoClass = "has-text-danger";
     }
+    if (request.query.password === "success") {
+      viewData.passwordMessage = "Password changed successfully!";
+      viewData.passwordClass = "has-text-success";
+    }
+    if (request.query.password === "wrong") {
+      viewData.passwordMessage = "Current password is incorrect.";
+      viewData.passwordClass = "has-text-danger";
+    }
     return h.view("./pages/account", { title: "Account", viewData: viewData });
     },
   },
@@ -151,12 +159,24 @@ export const mainController = {
           return h.redirect("/");
         }
         allUsers = await db.usersStore.getAllUsers();
+        const itemCountByOwner = await db.itemsStore.getItemCountByOwner();
+        const users = allUsers.map((user) => {
+          const userId = user._id.toString();
+          const indexedCount = user.data?.items?.length ?? 0;
+          const feedbackCount = Object.hasOwn(itemCountByOwner, userId)
+            ? itemCountByOwner[userId]
+            : indexedCount;
+          return {
+            ...user,
+            feedbackCount,
+          };
+        });
         const viewData = {
           title: "Users",
           isAuthenticated: request.auth.isAuthenticated,
           userIsAdmin: isAdmin,
           username: request.auth.credentials.username,
-          users: allUsers,
+          users,
         };
         if (request.query.info === "deleted") {
           viewData.message = "The user has been deleted.";
@@ -308,6 +328,10 @@ export const mainController = {
         viewData.infoMessage = "Collection updated successfully.";
         viewData.infoClass = "has-text-success";
       }
+      if (request.query.info === "image_uploaded") {
+        viewData.infoMessage = "Cover image uploaded successfully.";
+        viewData.infoClass = "has-text-success";
+      }
 
       return h.view("./pages/collection", {
         title: collection.name,
@@ -438,11 +462,98 @@ export const mainController = {
       } else if (request.query.info === "image_uploaded") {
         viewData.infoMessage = "Cover image uploaded successfully.";
         viewData.infoClass = "has-text-success";
+      } else if (request.query.info === "share_created") {
+        viewData.infoMessage = "Share link created.";
+        viewData.infoClass = "has-text-success";
+        viewData.newShareUrl = request.query.share_url
+          ? decodeURIComponent(request.query.share_url)
+          : "";
+        viewData.showShareForm = true;
+      } else if (request.query.info === "share_deleted") {
+        viewData.infoMessage = "Share link removed.";
+        viewData.infoClass = "has-text-success";
+      } else if (request.query.info === "share_error") {
+        viewData.infoMessage =
+          request.query.share_error != null
+            ? decodeURIComponent(request.query.share_error)
+            : "Could not create share link.";
+        viewData.infoClass = "has-text-danger";
+        viewData.showShareForm = true;
+      }
+
+      if (item.metadata?.access === "shared" && isOwner) {
+        const sharePath = (token) =>
+          `/shared/${itemId}?token=${encodeURIComponent(token)}`;
+        const baseUrl = process.env.SERVICE_URL?.replace(/\/$/, "") ?? "";
+        viewData.sharedLinks = (item.metadata?.sharedLinks ?? []).map(
+          (link) => {
+            const href = sharePath(link.token);
+            return {
+              name: link.name,
+              sharedAt: link.sharedAt,
+              href,
+              fullUrl: baseUrl ? `${baseUrl}${href}` : href,
+            };
+          },
+        );
       }
 
       return h.view("./pages/item", {
         title: item.data.name,
         viewData,
+      });
+    },
+  },
+
+  /** Guest read-only item page via signed share token (`/shared/{id}?token=...`). */
+  sharedItem: {
+    auth: false,
+    handler: async (request, h) => {
+      const itemId = request.params.id;
+      const token = request.query.token;
+
+      const access = await db.itemsStore.validateSharedItemAccess(
+        itemId,
+        token,
+      );
+      if (!access.valid) {
+        return h.redirect("/shared/invalid");
+      }
+
+      const { item } = access;
+      const itemCategoryLinks = (item.data?.categories ?? []).map((name) => ({
+        name,
+        href: null,
+      }));
+      const itemCollectionLinks = (item.data?.collections ?? []).map(
+        (name) => ({ name, id: null }),
+      );
+
+      return h.view("./pages/shared-item", {
+        title: item.data.name,
+        viewData: {
+          title: item.data.name,
+          subtitle: "Shared item",
+          isGuest: true,
+          item,
+          itemCategoryLinks,
+          itemCollectionLinks,
+        },
+      });
+    },
+  },
+
+  /** Shown when a share link token or stored share name is invalid. */
+  sharedLinkInvalid: {
+    auth: false,
+    handler: async (request, h) => {
+      return h.view("./pages/shared-link-invalid", {
+        title: "Invalid share link",
+        viewData: {
+          title: "Invalid share link",
+          message:
+            "This shared link is not valid. It may have been removed or the URL may be incorrect.",
+        },
       });
     },
   },

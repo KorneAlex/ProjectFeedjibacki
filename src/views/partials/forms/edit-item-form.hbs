@@ -239,60 +239,18 @@
   </div>
 
   <div class="mb-4 edit-item-cover">
-    <div class="field">
-      <label class="label" for="edit-item-img-cover">Image URL</label>
-      <div class="control">
-        <input
-          id="edit-item-img-cover"
-          class="input"
-          type="url"
-          name="img_cover"
-          value="{{viewData.item.data.img.cover}}"
-          maxlength="2048"
-          placeholder="https://…"
-        />
-      </div>
-      <p class="help">Optional. Saved when you click Save changes.</p>
-    </div>
+    {{> forms/cover-image-preview }}
   </div>
   </form>
 
-  <div class="field">
-    <label class="label" for="edit-item-imagefile">Upload picture</label>
-    <form
-      class="edit-item-cover__upload"
-      action="/items/uploadImage?id={{viewData.item._id}}"
-      method="POST"
-      enctype="multipart/form-data"
-    >
-      <div class="field is-grouped is-grouped-multiline mb-0">
-        <div class="control is-expanded">
-          <div id="file-select" class="file has-name is-fullwidth">
-            <label class="file-label">
-              <input
-                id="edit-item-imagefile"
-                class="file-input"
-                name="imagefile"
-                type="file"
-                accept="image/png, image/jpeg"
-              >
-              <span class="file-cta">
-                <span class="file-icon">
-                  <i class="fas fa-upload"></i>
-                </span>
-                <span class="file-label">Choose a file…</span>
-              </span>
-              <span class="file-name"></span>
-            </label>
-          </div>
-        </div>
-        <div class="control">
-          <button type="submit" class="button is-primary is-light">Upload</button>
-        </div>
-      </div>
-    </form>
-    <p class="help">PNG or JPEG, max 5 MB. Uploads immediately and sets the cover image.</p>
-  </div>
+  {{> forms/upload-image-field
+    inputId="edit-item-imagefile"
+    label="Upload picture"
+    helpText="PNG or JPEG, max 5 MB. Uploads immediately and sets the cover image."
+    uploadEndpoint="/items/uploadImage"
+    uploadEntityId=viewData.item._id
+    formClass="edit-item-cover__upload"
+  }}
 
   <div class="field is-grouped mt-5">
     <div class="control">
@@ -382,15 +340,5 @@
     }
 
     reloadBtn.addEventListener("click", reloadCollections);
-
-    const coverFileInput = document.getElementById("edit-item-imagefile");
-    if (coverFileInput) {
-      coverFileInput.addEventListener("change", function () {
-        if (coverFileInput.files.length > 0) {
-          const fileName = coverFileInput.closest(".file")?.querySelector(".file-name");
-          if (fileName) fileName.textContent = coverFileInput.files[0].name;
-        }
-      });
-    }
   });
 </script>

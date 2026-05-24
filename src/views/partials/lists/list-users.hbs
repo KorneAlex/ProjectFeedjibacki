@@ -18,10 +18,10 @@
             <td>{{this._id}}</td>
             <td>{{this.metadata.username}}</td>
             <td>{{this.metadata.email}}</td>
-            <td>{{#if this.data.points}}{{this.data.points.length}}{{else}}0{{/if}}</td>
+            <td>{{this.feedbackCount}}</td>
             <td class="is-flex is-justify-content-center">
                 <a href="/user?userid={{this._id}}" class="button list-button" title="View user">{{>svg/user-icon }}</a>
-                <a href="/user?userid={{this._id}}&edit=1" class="button list-button is-primary is-light" title="Edit user">Edit</a>
+                <a href="/user?userid={{this._id}}&edit=1" class="button list-button" title="Edit user">{{>svg/edit}}</a>
                 <a href="/user/{{this._id}}/delete" class="button list-button" title="Delete user">{{>svg/delete }}</a>
             </td>
         </tr>

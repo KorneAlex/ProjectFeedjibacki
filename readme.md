@@ -12,16 +12,18 @@ AI has been used for UI work (CSS and layout). Backend logic is written manually
 
 ## Features
 
-- User sign-up, login, and account management
+- User sign-up, login, and account management (JWT cookies with refresh)
 - **Items** — log products you've purchased and tested, with cover images, descriptions, and shop/price fields
 - **Ratings & comments** — score items (0–100) and store your own notes on each product
 - **Categories** — tag items for browsing and filtering
 - **Collections** — group related items (e.g. weekly shop, favourites, freezer)
-- Private, public, or shared access settings on items (shared flow planned)
+- **Item access** — `private`, `public` (any signed-in user), or `shared` (named guest links)
+- **Guest share links** — owners create labelled links (`/shared/{itemId}?token=...`); guests get read-only access without an account; links can be revoked individually
 - Server-side rendering with Handlebars
 - MongoDB persistence via Mongoose
 - Joi validation on forms and APIs
 - Image uploads (Cloudinary) for item cover photos
+- Responsive layout (including mobile-friendly shared-links list on item pages)
 - Automated tests and ESLint
 
 ---
@@ -42,8 +44,9 @@ AI has been used for UI work (CSS and layout). Backend logic is written manually
 
 **Authentication**
 
-- JWT (`hapi-auth-jwt2`)
-- bcrypt
+- JWT (`hapi-auth-jwt2`) — access and refresh tokens in httpOnly cookies
+- bcrypt — password hashing
+- Signed share tokens for guest item access (`user_id`, `item_id`, `access: guest`)
 
 **Other**
 
@@ -55,11 +58,11 @@ AI has been used for UI work (CSS and layout). Backend logic is written manually
 
 ## Installation
 
-Clone the repository:
+Clone the repository and enter the project directory:
 
 ```bash
-git clone https://github.com/KorneAlex/NoteOnMap.git
-cd NoteOnMap
+git clone <your-repo-url>
+cd ProjectFeedjibacki
 ```
 
 Install dependencies:
@@ -68,7 +71,13 @@ Install dependencies:
 npm install
 ```
 
-Create a `.env` file in the project root with the required variables (MongoDB connection, session secrets, Cloudinary keys, etc.). See your course notes or `.env.example` if one is provided.
+Copy environment variables from the template and fill in your values:
+
+```bash
+cp .env.template .env
+```
+
+Required settings include `MONGO_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, Cloudinary credentials, and `SERVICE_URL` (used when building full share-link URLs for owners to copy).
 
 ---
 
@@ -109,16 +118,18 @@ npm run lint
 ```
 project-root
 ├── src/
-│   ├── controllers/    # Route handlers
-│   ├── lib/              # Server plugins, auth, Cloudinary, etc.
-│   ├── models/           # Joi schemas and MongoDB stores
-│   ├── views/            # Handlebars layouts, pages, partials
-│   ├── css/              # Stylesheets
-│   └── api/              # JSON API routes
-├── test/                 # Mocha tests
-├── routes.js             # Route table
-├── server.js             # Application entry point
-└── .env                  # Environment variables (not committed)
+│   ├── controllers/    # Route handlers (pages and actions)
+│   ├── lib/            # Server plugins, auth, views, Cloudinary, etc.
+│   ├── models/         # Joi schemas and MongoDB stores
+│   ├── views/          # Handlebars layouts, pages, partials
+│   ├── css/            # Stylesheets
+│   └── api/            # JSON API routes
+├── test/               # Mocha tests
+├── routes.js           # HTML page and form routes
+├── api-routes.js       # REST API routes
+├── server.js           # Application entry point
+├── .env.template       # Environment variable template
+└── .env                # Local secrets (not committed)
 ```
 
 ---
@@ -128,10 +139,20 @@ project-root
 | Area | Examples |
 |------|----------|
 | Home | `/` |
-| Account | `/login`, `/signup`, `/account` |
-| Items | `/my-items`, `/items/{id}` |
+| Account | `/login`, `/signup`, `/account`, `/auth/refresh`, `/logout` |
+| Items | `/my-items`, `/items/{id}`, `POST /items/{id}/share`, `GET /items/{id}/share/{name}/delete` |
+| Shared (guest) | `/shared/{id}?token=...`, `/shared/invalid` |
 | Collections | `/my-collections`, `/collections/{id}` |
 | Categories | `/my-categories` |
+
+---
+
+## Item sharing (summary)
+
+1. Set an item’s access to **Shared** (or create a share link, which sets access automatically).
+2. On the item page, click **Share**, enter a name for the link, and submit.
+3. Copy the generated URL and send it to someone; they can open the read-only shared item page without logging in.
+4. Manage active links on the item page (open, copy, or delete). Deleting a link invalidates that token immediately.
 
 ---
 
@@ -144,6 +165,7 @@ Built for **SETU Full Stack Web Development** (Assignment 2) to practice:
 - MongoDB data modelling
 - Server-side rendering
 - Form validation and file uploads
+- Guest access via signed tokens
 - Testing and linting
 
 ---

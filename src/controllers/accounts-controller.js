@@ -1,6 +1,8 @@
 // db_flow_3: uses the initialized stores in controller functions
+import { createRequire } from "module";
 import { db } from "../models/db.js";
-import { signupSchema } from "../models/joi-schema.js";
+import { signupSchema, changePasswordFormSchema } from "../models/joi-schema.js";
+import { comparePassword } from "../lib/password.js";
 import {
   jwtAccessCookieAttrs,
   clearJwtAccessCookie,
@@ -8,8 +10,11 @@ import {
   clearJwtRefreshCookie,
   signAccessTokenForUser,
   signRefreshTokenForUser,
-  clearSessionCookie,
+  getRefreshTokenFromRequest,
 } from "../lib/hapi-auth.js";
+
+const require = createRequire(import.meta.url);
+const jwt = require("jsonwebtoken");
 
 export const accountController = {
   signup: {
@@ -90,11 +95,6 @@ export const accountController = {
         });
       }
       try {
-      request.cookieAuth.set({ id: user._id.toString() });
-      } catch (err) {
-        // console.error("Error setting cookie:", err);
-      }
-      try {
         const token = signAccessTokenForUser(user);
         const refreshToken = signRefreshTokenForUser(user);
         return h
@@ -109,7 +109,79 @@ export const accountController = {
 
   logout: {
     handler: (request, h) => {
-      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie(), clearSessionCookie()]);
+      return h.redirect("/").header("Set-Cookie", [clearJwtAccessCookie(), clearJwtRefreshCookie()]);
     },
   },
+
+  changePassword: {
+    auth: "jwt",
+    validate: {
+      payload: changePasswordFormSchema,
+      failAction: async (request, h, err) => {
+        const isAdmin = await db.usersStore.userIsAdmin(
+          request.auth.credentials._id,
+        );
+        const viewData = {
+          isAuthenticated: request.auth.isAuthenticated,
+          userIsAdmin: isAdmin,
+          mapsApiKey: await db.usersStore.getApiKeyByUserId(
+            request.auth.credentials._id,
+          ),
+          username: request.auth.credentials.username,
+          passwordMessage: err.details[0].message,
+          passwordClass: "has-text-danger",
+        };
+        return h
+          .view("./pages/account", { title: "Account", viewData })
+          .takeover();
+      },
+    },
+    handler: async (request, h) => {
+      const userId = request.auth.credentials._id;
+      const { currentPassword, password } = request.payload;
+      const user = await db.usersStore.getUserDataById(userId);
+      if (!user?.metadata?.password) {
+        return h.redirect("/account?password=wrong");
+      }
+      const valid = await comparePassword(
+        currentPassword,
+        user.metadata.password,
+      );
+      if (!valid) {
+        return h.redirect("/account?password=wrong");
+      }
+      await db.usersStore.updateUserById(userId, { password });
+      return h.redirect("/account?password=success");
+    },
+  },
+
+  refreshToken: {
+    auth: false,
+    handler: async (request, h) => {
+      const refreshToken = getRefreshTokenFromRequest(request);
+      if (!refreshToken) {
+        return h.response({ error: "No refresh token provided" }).code(401);
+      }
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await db.usersStore.getUserById(decoded.id);
+        if (!user) {
+          return h.response({ error: "User not found" }).code(404);
+        }
+        const newAccessToken = signAccessTokenForUser(user);
+        const newRefreshToken = signRefreshTokenForUser(user);
+        const next = request.query.next;
+        const redirectTo =
+          typeof next === "string" && next.startsWith("/") && !next.startsWith("//")
+            ? next
+            : "/";
+        return h
+          .redirect(redirectTo)
+          .header("Set-Cookie", [jwtAccessCookieAttrs(newAccessToken), jwtRefreshCookieAttrs(newRefreshToken)]);
+      } catch (err) {
+        console.error("Error refreshing token:", err);
+        return h.response({ error: "Invalid refresh token" }).code(401);
+      }
+    },
+  }
 };

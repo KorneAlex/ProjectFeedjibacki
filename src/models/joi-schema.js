@@ -61,7 +61,23 @@ export const userUpdateSchema = Joi.object({
     "object.needUpdateField":
       "Provide username, or email, or both password and passwordRepeat",
   })
-  .label("UserUpdate");
+  .label("UserUpdate")
+
+/** POST `/account/change-password` — logged-in user changes their own password. */
+export const changePasswordFormSchema = Joi.object({
+  currentPassword: Joi.string().min(6).max(30).required(),
+  password: Joi.string().min(6).max(30).required(),
+  passwordRepeat: Joi.string().min(6).max(30).required(),
+})
+  .custom((value, helpers) => {
+    if (value.password !== value.passwordRepeat) {
+      return helpers.error("object.passwordMismatch");
+    }
+    return value;
+  })
+  .messages({
+    "object.passwordMismatch": "Passwords do not match",
+  });
 
 /** POST `/user/{uid}/edit` — admin edits username, email, and admin flag (no password). */
 export const adminUserEditFormSchema = Joi.object({
@@ -126,7 +142,6 @@ export const createItemFormSchema = Joi.object({
     .optional(),
   comments_owner: Joi.string().max(500).allow("").optional(),
   shop: Joi.string().max(200).allow("").optional(),
-  img_cover: Joi.string().max(2048).allow("").optional(),
   imagefile: Joi.any().optional(),
   access: Joi.string().valid("private", "public", "shared").optional(),
 });
@@ -201,6 +216,11 @@ const itemMetadataSchema = Joi.object({
   access: Joi.string().valid("private", "public", "shared").required(),
 });
 
+/** POST `/items/{id}/share` — owner creates a named guest share link. */
+export const shareItemFormSchema = Joi.object({
+  share_name: Joi.string().min(1).max(80).trim().required(),
+});
+
 export const itemSchema = Joi.object({
   _id: Joi.any().optional(),
   metadata: itemMetadataSchema.required(),
@@ -226,10 +246,15 @@ export const editCollectionFormSchema = Joi.object({
   item_ids: collectionItemIdsField,
 });
 
+const collectionImgSchema = Joi.object({
+  cover: Joi.string().max(2048).allow("").optional(),
+});
+
 const collectionDataSchema = Joi.object({
   name: Joi.string().min(2).max(100).required(),
   privacy: Joi.string().valid("private", "shared").required(),
   items: Joi.array().items(Joi.string()).optional(),
+  img: collectionImgSchema.optional(),
 });
 
 const collectionMetadataSchema = Joi.object({

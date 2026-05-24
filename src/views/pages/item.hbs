@@ -35,11 +35,44 @@
             </div>
             {{#if viewData.isOwner}}
               <div class="item-detail__actions buttons">
+                <button type="button" class="button is-info is-light" id="share-item-toggle">Share</button>
                 <a class="button is-primary is-light" href="/items/{{viewData.item._id}}?edit=1">Edit</a>
                 <a class="button is-danger is-light" href="/items/{{viewData.item._id}}/delete">Delete</a>
               </div>
             {{/if}}
           </header>
+
+          {{#if viewData.isOwner}}
+            <div id="share-item-panel" class="box mb-4{{#unless viewData.showShareForm}} is-hidden{{/unless}}">
+              <h3 class="title is-6 mb-3">Create share link</h3>
+              <form method="post" action="/items/{{viewData.item._id}}/share">
+                <div class="field">
+                  <label class="label" for="share_name">Name for this shared link</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      type="text"
+                      id="share_name"
+                      name="share_name"
+                      maxlength="80"
+                      required
+                      placeholder="e.g. Family, Review group"
+                    />
+                  </div>
+                  <p class="help">Give each link a label so you can revoke it later.</p>
+                </div>
+                <div class="buttons">
+                  <button type="submit" class="button is-primary">Create link</button>
+                  <button type="button" class="button is-light" id="share-item-cancel">Cancel</button>
+                </div>
+              </form>
+              {{#if viewData.newShareUrl}}
+                <div class="notification is-success is-light mt-4">
+                  <p class="mb-2">Copy this link to share:</p>
+                  <input class="input" type="text" readonly value="{{viewData.newShareUrl}}" id="new-share-url" />
+                </div>
+              {{/if}}
+            </div>
 
           <div class="columns is-desktop item-detail__body">
             <aside class="column is-4-desktop item-detail__sidebar">
@@ -89,9 +122,9 @@
                     <div class="tags item-detail__tags">
                       {{#each viewData.itemCategoryLinks}}
                         {{#if this.href}}
-                          <a href="{{this.href}}" class="tag is-light">{{this.name}}</a>
+                          <a href="{{this.href}}" class="tag is-dark">{{this.name}}</a>
                         {{else}}
-                          <span class="tag is-light">{{this.name}}</span>
+                          <span class="tag is-dark">{{this.name}}</span>
                         {{/if}}
                       {{/each}}
                     </div>
@@ -105,9 +138,9 @@
                     <div class="tags item-detail__tags">
                       {{#each viewData.itemCollectionLinks}}
                         {{#if this.id}}
-                          <a href="/collections/{{this.id}}" class="tag is-info is-light">{{this.name}}</a>
+                          <a href="/collections/{{this.id}}" class="tag is-dark">{{this.name}}</a>
                         {{else}}
-                          <span class="tag is-info is-light">{{this.name}}</span>
+                          <span class="tag is-dark">{{this.name}}</span>
                         {{/if}}
                       {{/each}}
                     </div>
@@ -152,4 +185,86 @@
   </div>
 </div>
 
-// TODO: add Shared with you items section
+ {{#if (eq viewData.item.metadata.access "shared")}}
+              {{#if viewData.sharedLinks.length}}
+                <section class="box mb-4 shared-links-section">
+                  <h3 class="title is-6 mb-3">Shared links for this item</h3>
+                  <div class="shared-links-table-wrap">
+                    <table class="table is-fullwidth is-striped shared-links-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Link (click to copy)</th>
+                          <th>Shared on</th>
+                          <th class="shared-links-table__actions-head"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {{#each viewData.sharedLinks}}
+                          <tr class="shared-links-table__row">
+                            <td data-label="Name">
+                              <a href="{{this.href}}" target="_blank" rel="noopener noreferrer">{{this.name}}</a>
+                            </td>
+                            <td class="share-link-cell" data-label="Link">
+                              <button
+                                type="button"
+                                class="share-link-copy has-text-link"
+                                data-copy-share-url="{{this.fullUrl}}"
+                                title="Click to copy link"
+                              >{{this.fullUrl}}</button>
+                            </td>
+                            <td data-label="Shared on">{{this.sharedAt}}</td>
+                            <td class="shared-links-table__actions" data-label="">
+                              <a
+                                class="button is-danger is-small"
+                                href="/items/{{../viewData.item._id}}/share/{{encodeUriComponent this.name}}/delete"
+                              >Delete</a>
+                            </td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              {{/if}}
+            {{/if}}
+          {{/if}}
+
+{{#if viewData.isOwner}}
+<script>
+  (function () {
+    const panel = document.getElementById("share-item-panel");
+    const toggle = document.getElementById("share-item-toggle");
+    const cancel = document.getElementById("share-item-cancel");
+    if (!panel || !toggle) return;
+
+    toggle.addEventListener("click", function () {
+      panel.classList.remove("is-hidden");
+    });
+    if (cancel) {
+      cancel.addEventListener("click", function () {
+        panel.classList.add("is-hidden");
+      });
+    }
+
+    document.querySelectorAll("[data-copy-share-url]").forEach(function (btn) {
+      btn.addEventListener("click", async function () {
+        const url = btn.getAttribute("data-copy-share-url");
+        if (!url) return;
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.classList.add("share-link-copy--copied");
+          const previousTitle = btn.title;
+          btn.title = "Copied!";
+          window.setTimeout(function () {
+            btn.classList.remove("share-link-copy--copied");
+            btn.title = previousTitle;
+          }, 1500);
+        } catch {
+          window.prompt("Copy this link:", url);
+        }
+      });
+    });
+  })();
+</script>
+{{/if}}

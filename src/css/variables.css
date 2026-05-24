@@ -3,6 +3,11 @@
   --bulma-primary-l: 53%;
   --bulma-success-h: 176deg;
   --bulma-success-s: 100%;
+
+  --btn-primary-bg: hsl(var(--bulma-primary-h), 72%, 40%);
+  --btn-primary-bg-hover: hsl(var(--bulma-primary-h), 72%, 34%);
+  --btn-danger-bg: hsl(348, 86%, 48%);
+  --btn-danger-bg-hover: hsl(348, 86%, 40%);
 }
 
 :root a {

@@ -2,24 +2,7 @@
 <div class="collections-grid">
   {{> lists/add-collection-tile }}
   {{#each viewData.collections}}
-    <article class="collection-tile">
-      <h3 class="collection-tile__title">
-        <a href="/collections/{{this._id}}">{{this.name}}</a>
-      </h3>
-      <p class="collection-tile__meta">{{this.itemCount}} item(s) · {{this.privacy}}</p>
-      {{#if this.items.length}}
-        <ul class="collection-tile__items">
-          {{#each this.items}}
-            <li>
-              <a href="/my-items">{{this.name}}</a>
-            </li>
-          {{/each}}
-        </ul>
-      {{/if}}
-      <div class="collection-tile__actions mt-3">
-        <a class="button is-small is-primary is-light" href="/collections/{{this._id}}?edit=1">Edit</a>
-      </div>
-    </article>
+    {{> lists/collection-tile }}
   {{/each}}
 </div>
 {{#unless viewData.collections.length}}

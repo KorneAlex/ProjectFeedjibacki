@@ -61,7 +61,7 @@
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.2.0",
     "hapi-swagger": "^17.3.2",
-    "mocha": "^11.3.0",
+    "mocha": "^11.7.6",
     "typescript": "^4.6.0",
     "typescript-eslint": "^8.54.0"
   }

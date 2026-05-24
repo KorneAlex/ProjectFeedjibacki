@@ -4,6 +4,7 @@ import { db } from "../src/models/db.js";
 import { usersStore } from "../src/models/mongodb/user-mongodb-store.js";
 import { pointsStore } from "../src/models/mongodb/points-mongodb-store.js";
 import { testData as td } from "../test/data-for-tests.js";
+import { comparePassword } from "../src/lib/password.js";
 
 export const mongodbTests = M.suite("MongoDB Tests", () => {
   M.before(async () => {
@@ -20,17 +21,20 @@ export const mongodbTests = M.suite("MongoDB Tests", () => {
 
     M.it("1. Should create a new user", async () => {
       const newUser = await usersStore.addUser(td[0].testUser);
-      assert.equal(newUser.username, td[0].testUser.username);
-      assert.equal(newUser.email, td[0].testUser.email);
-      assert.equal(newUser.password, td[0].testUser.password);
+      assert.equal(newUser.metadata.username, td[0].testUser.username);
+      assert.equal(newUser.metadata.email, td[0].testUser.email);
+      assert.notEqual(newUser.metadata.password, td[0].testUser.password);
+      assert.isTrue(
+        await comparePassword(td[0].testUser.password, newUser.metadata.password),
+      );
     });
 
     M.it("2. Should retrieve a user by email", async () => {
       await usersStore.addUser(td[0].testUser);
       const user = await usersStore.getUserByEmail(td[0].testUser.email);
       assert.isNotNull(user, "User should be found");
-      assert.equal(user.username, td[0].testUser.username);
-      assert.equal(user.email, td[0].testUser.email);
+      assert.equal(user.metadata.username, td[0].testUser.username);
+      assert.equal(user.metadata.email, td[0].testUser.email);
     });
 
     M.it("3. Delete a user by id", async () => {

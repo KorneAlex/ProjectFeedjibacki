@@ -43,14 +43,7 @@
   pointer-events: none;
 }
 
-/* When burger menu is visible (small screens), shift account button left — only when not map */
-@media screen and (max-width: 1023px) {
-  body:not(.page-map) .account-menu-wrapper,
-  body:not(.page-map) .account-icon,
-  body:not(.page-map) .account-icon-bg {
-    right: 4rem;
-  }
-}
+
 
 /* users list (from the previous project) */
 
