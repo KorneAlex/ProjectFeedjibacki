@@ -26,12 +26,29 @@
   }
 }
 
-/* Navbar: ensure it stays on top and works on mobile */
+/* Navbar: sticky at top; text logo hidden on small screens */
 .navbar {
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 99;
   padding-top: 1rem;
   padding-bottom: 1rem;
+  background-color: var(--bulma-body-background-color);
+}
+
+.navbar .navbar-menu {
+  display: none;
+}
+
+@media screen and (min-width: 1024px) {
+  .navbar .navbar-menu {
+    display: flex;
+    flex-grow: 1;
+    flex-shrink: 0;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0;
+  }
 }
 
 .navbar-page-header {

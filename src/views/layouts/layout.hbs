@@ -29,18 +29,6 @@
     </main>
     {{> interface/footer }}
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      let burger = document.querySelector('.navbar-burger');
-      let menu = document.getElementById('navbarBasicExample');
-      if (burger && menu) {
-        burger.addEventListener('click', function () {
-          burger.classList.toggle('is-active');
-          menu.classList.toggle('is-active');
-        });
-      }
-    });
-  </script>
   {{!-- {{/if}} --}}
 </body>
 </html>
